@@ -6,6 +6,7 @@ use App\Http\Controllers\PokirController;
 use App\Http\Controllers\MasterController;
 use App\Http\Controllers\AiController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PlanController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -42,8 +43,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/master/kategori', [MasterController::class, 'storeKategori'])->name('master.kategori.store');
     Route::delete('/master/kategori/{kategori}', [MasterController::class, 'destroyKategori'])->name('master.kategori.destroy');
 
-    // === 3. MODUL AI ===
-    Route::post('/ai/ask', [AiController::class, 'ask'])->name('ai.ask');
+  // Route Master Plan (Wadah)
+  Route::get('/master/plans', [PlanController::class, 'index'])->name('plans.index');
+  Route::post('/master/plans/import', [PlanController::class, 'import'])->name('plans.import');
 
     
 
