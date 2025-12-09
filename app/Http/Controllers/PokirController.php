@@ -7,6 +7,9 @@ use App\Models\Pokir;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use App\Models\Aleg;
+use App\Models\Opd;
+use App\Models\Kategori;
 
 class PokirController extends Controller
 { // Fungsi bantuan agar filter bisa dipakai di Index, Print, dan Excel
@@ -38,7 +41,12 @@ class PokirController extends Controller
     // HALAMAN INPUT (FORM)
     public function create()
     {
-        return view('pokir.create');
+        $alegs = Aleg::all();
+        $opds = Opd::all();
+        $kategoris = Kategori::all();
+
+        // Sesuaikan nama view-nya (pokir.create atau pokir.create-bulk)
+        return view('pokir.create', compact('alegs', 'opds', 'kategoris'));
     }
 
     // PROSES SIMPAN
@@ -61,7 +69,7 @@ class PokirController extends Controller
             'identitas_pemohon' => $request->identitas_pemohon,
             'anggota_dprd' => $request->anggota_dprd,
             'status_berkas' => $request->status_berkas,
-            'operator_penerima' => $request->operator_penerima ?? 'IVHON',
+            'operator_penerima' => $request->operator_penerima,
         ]);
 
         // Redirect ke Index agar bisa lihat hasil input
@@ -72,7 +80,11 @@ class PokirController extends Controller
 
     public function createBulk()
     {
-        return view('pokir.create-bulk');
+        $alegs = Aleg::all();
+        $opds = Opd::all();
+        $kategoris = Kategori::all();
+
+        return view('pokir.create-bulk', compact('alegs', 'opds', 'kategoris'));
     }
 
     // 2. SIMPAN DATA MASSAL
@@ -83,10 +95,10 @@ class PokirController extends Controller
             'kategori_usulan' => 'required',
             'opd_tujuan' => 'required',
             'anggota_dprd' => 'required',
-            
+
             // Validasi Array Detail
             'details' => 'required|array|min:1',
-            'details.*.nama_pemohon' => 'required', 
+            'details.*.nama_pemohon' => 'required',
             'details.*.alamat' => 'required',
         ]);
 
@@ -94,7 +106,7 @@ class PokirController extends Controller
             'kategori_usulan' => $request->kategori_usulan,
             'opd_tujuan' => $request->opd_tujuan,
             'anggota_dprd' => $request->anggota_dprd,
-            'operator_penerima' => 'IVHON', // Default
+            'operator_penerima' => $request->operator_penerima,
         ];
 
         // Looping simpan per baris
@@ -107,7 +119,7 @@ class PokirController extends Controller
                 'nama_pemohon' => $row['nama_pemohon'],
                 'identitas_pemohon' => $row['identitas_pemohon'] ?? null,
                 'alamat' => $row['alamat'],
-                'status_berkas' => $row['status_berkas'] ?? null,
+                'status_berkas' => !empty($row['status_berkas']) ? $row['status_berkas'] : '1 Proposal',
             ]));
         }
 
@@ -166,7 +178,4 @@ class PokirController extends Controller
         $writer->save('php://output');
         exit;
     }
-
-
-    
 }

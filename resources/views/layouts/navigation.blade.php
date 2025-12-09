@@ -16,6 +16,18 @@
 
             {{ __('Dashboard') }}
         </x-nav-link>
+
+        <x-nav-link :href="route('pokir.bulk')" :active="request()->routeIs('pokir.bulk')">
+            {{ __('Input Usulan') }}
+        </x-nav-link>
+    
+        <x-nav-link :href="route('pokir.index')" :active="request()->routeIs('pokir.index')">
+            {{ __('Data Pokir') }}
+        </x-nav-link>
+    
+        <x-nav-link :href="route('master.index')" :active="request()->routeIs('master.*')">
+            {{ __('Master Data') }}
+        </x-nav-link>
     
     </nav>
     <!-- User Dropdown -->
