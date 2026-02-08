@@ -97,4 +97,82 @@ class PlanController extends Controller
         if (is_numeric($string)) return $string;
         return (float) preg_replace('/[^0-9]/', '', $string);
     }
+
+
+    public function update(Request $request, $id)
+    {
+        $plan = PokirPlan::findOrFail($id);
+
+        // Validasi input
+        $request->validate([
+            'nama_kegiatan' => 'required|string',
+            'volume_target' => 'required|numeric',
+            'harga_satuan'  => 'required', // Bisa string "Rp...", nanti dibersihkan
+        ]);
+
+        // Bersihkan angka
+        $hargaClean = $this->cleanNumber($request->harga_satuan);
+        $volume = (int) $request->volume_target;
+
+        // Hitung ulang total otomatis
+        $totalBaru = $volume * $hargaClean;
+
+        $plan->update([
+            'nama_kegiatan' => $request->nama_kegiatan,
+            'opd_tujuan'    => $request->opd_tujuan, // Jaga-jaga mau ganti OPD
+            'volume_target' => $volume,
+            'satuan'        => $request->satuan,
+            'harga_satuan'  => $hargaClean,
+            'pagu_total'    => $totalBaru, // Update total otomatis
+        ]);
+
+        return redirect()->back()->with('success', 'Data berhasil diperbarui!');
+    }
+
+    // 4. PROSES HAPUS
+    public function destroy($id)
+    {
+        $plan = PokirPlan::findOrFail($id);
+
+        // Opsional: Cek apakah sudah ada usulan masuk? Kalau ada, cegah hapus.
+        if ($plan->pokirs()->count() > 0) {
+            return redirect()->back()->with('error', 'Gagal hapus! Sudah ada usulan warga yang masuk ke program ini.');
+        }
+
+        $plan->delete();
+        return redirect()->back()->with('success', 'Rencana kerja berhasil dihapus.');
+    }
+
+    public function destroyByAleg(Request $request)
+    {
+        // Hapus semua data berdasarkan Nama Aleg
+        PokirPlan::where('anggota_dprd', $request->anggota_dprd)->delete();
+
+        return redirect()->back()->with('success', 'Seluruh pagu milik ' . $request->anggota_dprd . ' berhasil dihapus.');
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'anggota_dprd'  => 'required|string',
+            'opd_tujuan'    => 'required|string',
+            'nama_kegiatan' => 'required|string',
+            'volume_target' => 'required|numeric',
+            'satuan'        => 'required|string',
+            'harga_satuan'  => 'required', // String Rp...
+        ]);
+
+        PokirPlan::create([
+            'anggota_dprd'   => $request->anggota_dprd,
+            'opd_tujuan'     => $request->opd_tujuan,
+            'nama_kegiatan'  => $request->nama_kegiatan,
+            'volume_target'  => $request->volume_target,
+            'satuan'         => $request->satuan,
+            'harga_satuan'   => $this->cleanNumber($request->harga_satuan),
+            'pagu_total'     => $request->volume_target * $this->cleanNumber($request->harga_satuan),
+            'tahun_anggaran' => 2026,
+        ]);
+
+        return redirect()->back()->with('success', 'Data rencana kerja berhasil ditambahkan manual.');
+    }
 }

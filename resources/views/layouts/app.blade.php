@@ -72,6 +72,60 @@
             </main>
         </div>
     </div>
-</body>m
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // --- A. HANDLING SESSION FLASH (Success/Error) ---
+        @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'BERHASIL!',
+                text: "{{ session('success') }}",
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                background: '#f0fdf4', // Hijau muda
+                iconColor: '#16a34a'   // Hijau tua
+            });
+        @endif
+
+        @if(session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'GAGAL!',
+                text: "{{ session('error') }}",
+                confirmButtonColor: '#ef4444',
+            });
+        @endif
+
+        // --- B. GLOBAL DELETE FUNCTION ---
+        // Panggil fungsi ini di tombol hapus manapun: onclick="confirmDelete(this)"
+        window.confirmDelete = function(button, message = 'Data yang dihapus tidak dapat dikembalikan!') {
+            // Mencegah Accordion terbuka saat tombol diklik (Stop Propagation)
+            if(event) event.stopPropagation();
+            if(event) event.preventDefault();
+
+            Swal.fire({
+                title: 'Apakah Anda Yakin?',
+                text: message,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',     // Merah
+                cancelButtonColor: '#3085d6',   // Biru
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Cari form terdekat dari tombol ini dan submit
+                    button.closest('form').submit();
+                }
+            });
+        }
+    </script>
+</body>
+
+
 
 </html>

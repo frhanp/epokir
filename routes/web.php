@@ -43,11 +43,17 @@ Route::middleware('auth')->group(function () {
     Route::post('/master/kategori', [MasterController::class, 'storeKategori'])->name('master.kategori.store');
     Route::delete('/master/kategori/{kategori}', [MasterController::class, 'destroyKategori'])->name('master.kategori.destroy');
 
-  // Route Master Plan (Wadah)
-  Route::get('/master/plans', [PlanController::class, 'index'])->name('plans.index');
-  Route::post('/master/plans/import', [PlanController::class, 'import'])->name('plans.import');
+    // Route Master Plan (Wadah)
+    Route::get('/master/plans', [PlanController::class, 'index'])->name('plans.index');
+    Route::post('/master/plans/import', [PlanController::class, 'import'])->name('plans.import');
 
-    
+    Route::put('/master/plans/{plan}', [PlanController::class, 'update'])->name('plans.update');
+    Route::post('/master/plans/store', [PlanController::class, 'store'])->name('plans.store');
+    Route::delete('/master/plans/aleg', [PlanController::class, 'destroyByAleg'])->name('plans.destroyAleg');
+    Route::delete('/master/plans/{plan}', [PlanController::class, 'destroy'])->name('plans.destroy');
+
+
+
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

@@ -1,8 +1,14 @@
 <aside class="h-full flex flex-col md:h-screen md:sticky md:top-0">
     <!-- Logo -->
     <div class="p-6 border-b border-gray-200">
-        <a href="{{ route('dashboard') }}" class="text-2xl font-bold text-gray-800">
-            {{ config('app.name', 'MY APP') }}
+        <a href="{{ route('dashboard') }}" class="flex items-center gap-3 group">
+            <img src="{{ asset('images/logo-golkar.png') }}" 
+                 alt="Logo Golkar" 
+                 class="h-11 w-auto rounded-xl shadow-sm transition transform group-hover:scale-105">
+                 
+            <span class="text-lg font-extrabold text-yellow-500 tracking-wide uppercase leading-tight">
+                Fraksi Partai Golkar
+            </span>
         </a>
     </div>
     <!-- Nav Links -->
