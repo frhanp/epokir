@@ -1,5 +1,5 @@
 ﻿# Project Digest (Full Content)
-_Generated: 2026-02-08 19:12:00_
+_Generated: 2026-02-09 01:12:55_
 **Root:** D:\Laragon\www\epokir
 
 
@@ -51,6 +51,7 @@ app\Http\Controllers\MasterController.php
 app\Http\Controllers\PlanController.php
 app\Http\Controllers\PokirController.php
 app\Http\Controllers\ProfileController.php
+app\Http\Controllers\ResesController.php
 app\Http\Controllers\Auth\AuthenticatedSessionController.php
 app\Http\Controllers\Auth\ConfirmablePasswordController.php
 app\Http\Controllers\Auth\EmailVerificationNotificationController.php
@@ -105,11 +106,14 @@ database\migrations\2025_12_09_114333_create_pokir_plans_table.php
 database\seeders\DatabaseSeeder.php
 public\build
 public\images
+public\js
 public\.htaccess
 public\favicon.ico
+public\hot
 public\index.php
 public\robots.txt
 public\images\logo-golkar.png
+public\js\reses-logic.js
 resources\css
 resources\js
 resources\views
@@ -123,6 +127,7 @@ resources\views\master
 resources\views\plan
 resources\views\pokir
 resources\views\profile
+resources\views\reses
 resources\views\dashboard.blade.php
 resources\views\welcome.blade.php
 resources\views\auth\confirm-password.blade.php
@@ -158,6 +163,8 @@ resources\views\profile\edit.blade.php
 resources\views\profile\partials\delete-user-form.blade.php
 resources\views\profile\partials\update-password-form.blade.php
 resources\views\profile\partials\update-profile-information-form.blade.php
+resources\views\reses\index.blade.php
+resources\views\reses\pdf.blade.php
 routes\auth.php
 routes\console.php
 routes\web.php
@@ -183,25 +190,67 @@ storage\framework\sessions\.gitignore
 storage\framework\testing\.gitignore
 storage\framework\views\.gitignore
 storage\framework\views\02062740613d03fe7be09cc1264dab53.php
+storage\framework\views\051c70b37c990c0a5d805b26b9498063.php
+storage\framework\views\0bfa2b904ef70772992dcd9ffd2cb9b5.php
+storage\framework\views\116456d540792b2eeadc1b2c1b19d4a7.php
+storage\framework\views\144f5084c6a2901684ab21148e0be895.php
+storage\framework\views\14578d3442a7557320483a4a23ac56a8.php
+storage\framework\views\199dbf8e25fe38d6449cb2356933624f.php
+storage\framework\views\1adcc5d13e534ea1bf3310f65b0a1930.php
+storage\framework\views\1b4aa595219f4584b2cc405891289cc2.php
+storage\framework\views\224a1dae11c57395436e4ff02823bd39.php
+storage\framework\views\249960dcd7930b32b39d972bdafe334b.php
 storage\framework\views\28d666e3906ae26441b72e5d9ef5666e.php
+storage\framework\views\34db34aa1570087a37b56c9ed91bf7e4.php
 storage\framework\views\375fa89afec6f9dd2ca560d0b34e3a80.php
 storage\framework\views\4123882327798f38539a456e7a9c7f7a.php
+storage\framework\views\42ca00058ce0a7e54a679059004952cd.php
+storage\framework\views\45482aeee06414af66a5f6d815e9a52d.php
+storage\framework\views\45b792433c06e88cd89d3cb2049a46c2.php
 storage\framework\views\4ea2ed6b5230bfb995a3d34e268ddbd0.php
+storage\framework\views\502e3b2f5905cb215f70374f2ef5989c.php
+storage\framework\views\55dbf29760b44555b07174c425be7b64.php
+storage\framework\views\5ef96d53b2546f1c0e71867a7242b518.php
 storage\framework\views\63fdb53e74d925c52d4b43615909b6c1.php
+storage\framework\views\6861c9e7ef080bce93a9aca87d5ba048.php
 storage\framework\views\745ee9128d301fdf1366e95d1f04ad67.php
 storage\framework\views\759e25983fad0579ba835ca56d540ffd.php
+storage\framework\views\7889413d5bfda6a27abe51fe6b079557.php
+storage\framework\views\8139428df38ce35134dcc590981d2945.php
 storage\framework\views\81af27648c32262fdabead69b4de37f8.php
 storage\framework\views\8439fdaa8f3a205e10bf8ca2ad7d1b5b.php
 storage\framework\views\85abf7e1f6b04c934e2b927eb9333cf8.php
 storage\framework\views\87f0b633522fcc04aecab2fa46a6d3af.php
+storage\framework\views\8b52d7a3ce7614c4daa3c4be284fe4bf.php
+storage\framework\views\8be15b6da9e6be1f105aeb1095396be3.php
+storage\framework\views\8d2e60f2ecd29fd5cd058314f29027de.php
+storage\framework\views\90228a72e5d9d36eaf3a1fba1aa2d3b2.php
+storage\framework\views\9396e709f23ef558ea9905169cbd16a5.php
+storage\framework\views\948b243d5e5a188ca0834cdfb1a390bc.php
 storage\framework\views\9504db4962b4a63d45d4113b48141d2e.php
 storage\framework\views\9c3b8510570f758b48a453e4fed58dea.php
 storage\framework\views\9c848969092d0079f5aef6124893e0c5.php
+storage\framework\views\a392e105b990cdb414a158a7ee88b3ef.php
+storage\framework\views\a84fb51111e087d2d57e3d09f77abb80.php
 storage\framework\views\a8905b63217519a283db2e1421f23763.php
+storage\framework\views\a94df3b71a5d7cea030b570a44c8829b.php
 storage\framework\views\b1a6880a6651e4e432907fa92b5bf970.php
+storage\framework\views\b41192ade8fe5ac0fe26cca2797a95c8.php
 storage\framework\views\bbaa67c3179bf330628834f5ef85890a.php
+storage\framework\views\c15fcec8e21df0dee381a5df2e2fccd8.php
+storage\framework\views\c209a3e7c9d90b2b8e75a653b1685c1d.php
 storage\framework\views\c32bf7048f3d5419567207e289e144b4.php
+storage\framework\views\c787b55564b56ee226f06e6642a20068.php
+storage\framework\views\d07ca34fbc1a1fef5c35b2e4b6615331.php
+storage\framework\views\d4a54683cf124374e7f95a5f970d2e14.php
+storage\framework\views\def741140cb062e1e68ebcb3a746b6f4.php
+storage\framework\views\e04a59d99a9412323db2749af9bc7f50.php
+storage\framework\views\e2cec13b25537392954dd8040aae0cd8.php
+storage\framework\views\e9b8d690b4a299b6d29c8e1980c39b8f.php
 storage\framework\views\ef4929aed0307f40e62abaf3def631f7.php
+storage\framework\views\f25c6657be2f9f7c223d5d04471861ad.php
+storage\framework\views\fc16e119116747b2220c8724135fac51.php
+storage\framework\views\ff6bae976704fa62120d288bddae83d6.php
 tests\Feature
 tests\Unit
 tests\TestCase.php
@@ -228,10 +277,11 @@ Branch:
 main
 
 Last 5 commits:
+51c07d3 fix spj reses
+a6d1879 fix reses tahap 1
+43f3f32 commit sebelum fitur reses
 12d3fef add pagu
 fb35701 cek poin sebelum ada usulan pokir aleg
-07fcca4 struktur awal
-a5d1b16 first commit
 ```
 
 
@@ -332,6 +382,7 @@ use App\Http\Controllers\MasterController;
 use App\Http\Controllers\AiController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PlanController;
+use App\Http\Controllers\ResesController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -377,6 +428,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/master/plans/aleg', [PlanController::class, 'destroyByAleg'])->name('plans.destroyAleg');
     Route::delete('/master/plans/{plan}', [PlanController::class, 'destroy'])->name('plans.destroy');
 
+    Route::get('/reses/lampiran', [ResesController::class, 'index'])->name('reses.index');
+Route::post('/reses/cetak', [ResesController::class, 'printPdf'])->name('reses.print');
+
 
 
 
@@ -393,56 +447,58 @@ require __DIR__ . '/auth.php';
 ## Routes (from command)
 ```
 
-  GET|HEAD  / ............................................................................................................................................................................................................ 
-  GET|HEAD  _debugbar/assets/javascript ...................................................................................................................... debugbar.assets.js ΓÇ║ Barryvdh\Debugbar ΓÇ║ AssetController@js
-  GET|HEAD  _debugbar/assets/stylesheets ................................................................................................................... debugbar.assets.css ΓÇ║ Barryvdh\Debugbar ΓÇ║ AssetController@css
-  DELETE    _debugbar/cache/{key}/{tags?} ............................................................................................................. debugbar.cache.delete ΓÇ║ Barryvdh\Debugbar ΓÇ║ CacheController@delete
-  GET|HEAD  _debugbar/clockwork/{id} ............................................................................................................ debugbar.clockwork ΓÇ║ Barryvdh\Debugbar ΓÇ║ OpenHandlerController@clockwork
-  GET|HEAD  _debugbar/open ....................................................................................................................... debugbar.openhandler ΓÇ║ Barryvdh\Debugbar ΓÇ║ OpenHandlerController@handle
-  POST      _debugbar/queries/explain ........................................................................................................... debugbar.queries.explain ΓÇ║ Barryvdh\Debugbar ΓÇ║ QueriesController@explain
-  GET|HEAD  confirm-password .................................................................................................................................. password.confirm ΓÇ║ Auth\ConfirmablePasswordController@show
-  POST      confirm-password .................................................................................................................................................... Auth\ConfirmablePasswordController@store
-  GET|HEAD  dashboard .............................................................................................................................................................. dashboard ΓÇ║ DashboardController@index
-  POST      email/verification-notification ....................................................................................................... verification.send ΓÇ║ Auth\EmailVerificationNotificationController@store
-  GET|HEAD  forgot-password ................................................................................................................................... password.request ΓÇ║ Auth\PasswordResetLinkController@create
-  POST      forgot-password ...................................................................................................................................... password.email ΓÇ║ Auth\PasswordResetLinkController@store
-  GET|HEAD  login ..................................................................................................................................................... login ΓÇ║ Auth\AuthenticatedSessionController@create
-  POST      login .............................................................................................................................................................. Auth\AuthenticatedSessionController@store
-  POST      logout .................................................................................................................................................. logout ΓÇ║ Auth\AuthenticatedSessionController@destroy
-  GET|HEAD  master ................................................................................................................................................................. master.index ΓÇ║ MasterController@index
-  POST      master/aleg ................................................................................................................................................... master.aleg.store ΓÇ║ MasterController@storeAleg
-  DELETE    master/aleg/{aleg} ........................................................................................................................................ master.aleg.destroy ΓÇ║ MasterController@destroyAleg
-  POST      master/kategori ....................................................................................................................................... master.kategori.store ΓÇ║ MasterController@storeKategori
-  DELETE    master/kategori/{kategori} ........................................................................................................................ master.kategori.destroy ΓÇ║ MasterController@destroyKategori
-  POST      master/opd ...................................................................................................................................................... master.opd.store ΓÇ║ MasterController@storeOpd
-  DELETE    master/opd/{opd} ............................................................................................................................................ master.opd.destroy ΓÇ║ MasterController@destroyOpd
-  GET|HEAD  master/plans .............................................................................................................................................................. plans.index ΓÇ║ PlanController@index
-  DELETE    master/plans/aleg ........................................................................................................................................... plans.destroyAleg ΓÇ║ PlanController@destroyByAleg
-  POST      master/plans/import ..................................................................................................................................................... plans.import ΓÇ║ PlanController@import
-  POST      master/plans/store ........................................................................................................................................................ plans.store ΓÇ║ PlanController@store
-  PUT       master/plans/{plan} ..................................................................................................................................................... plans.update ΓÇ║ PlanController@update
-  DELETE    master/plans/{plan} ................................................................................................................................................... plans.destroy ΓÇ║ PlanController@destroy
-  PUT       password .................................................................................................................................................... password.update ΓÇ║ Auth\PasswordController@update
-  GET|HEAD  pokir .................................................................................................................................................................... pokir.index ΓÇ║ PokirController@index
-  POST      pokir .................................................................................................................................................................... pokir.store ΓÇ║ PokirController@store
-  GET|HEAD  pokir/create ........................................................................................................................................................... pokir.create ΓÇ║ PokirController@create
-  GET|HEAD  pokir/export ...................................................................................................................................................... pokir.export ΓÇ║ PokirController@exportExcel
-  GET|HEAD  pokir/input-massal ................................................................................................................................................... pokir.bulk ΓÇ║ PokirController@createBulk
-  POST      pokir/input-massal ............................................................................................................................................... pokir.storeBulk ΓÇ║ PokirController@storeBulk
-  GET|HEAD  pokir/print .............................................................................................................................................................. pokir.print ΓÇ║ PokirController@print
-  GET|HEAD  profile ................................................................................................................................................................ profile.edit ΓÇ║ ProfileController@edit
-  PATCH     profile ............................................................................................................................................................ profile.update ΓÇ║ ProfileController@update
-  DELETE    profile .......................................................................................................................................................... profile.destroy ΓÇ║ ProfileController@destroy
-  GET|HEAD  register ..................................................................................................................................................... register ΓÇ║ Auth\RegisteredUserController@create
-  POST      register ................................................................................................................................................................. Auth\RegisteredUserController@store
-  POST      reset-password ............................................................................................................................................. password.store ΓÇ║ Auth\NewPasswordController@store
-  GET|HEAD  reset-password/{token} .................................................................................................................................... password.reset ΓÇ║ Auth\NewPasswordController@create
-  GET|HEAD  storage/{path} ................................................................................................................................................................................. storage.local
-  GET|HEAD  up ........................................................................................................................................................................................................... 
-  GET|HEAD  verify-email .................................................................................................................................... verification.notice ΓÇ║ Auth\EmailVerificationPromptController
-  GET|HEAD  verify-email/{id}/{hash} .................................................................................................................................... verification.verify ΓÇ║ Auth\VerifyEmailController
+  GET|HEAD  / ........................................................................................................................................................................................... 
+  GET|HEAD  _debugbar/assets/javascript ..................................................................................................... debugbar.assets.js ΓÇ║ Barryvdh\Debugbar ΓÇ║ AssetController@js
+  GET|HEAD  _debugbar/assets/stylesheets .................................................................................................. debugbar.assets.css ΓÇ║ Barryvdh\Debugbar ΓÇ║ AssetController@css
+  DELETE    _debugbar/cache/{key}/{tags?} ............................................................................................ debugbar.cache.delete ΓÇ║ Barryvdh\Debugbar ΓÇ║ CacheController@delete
+  GET|HEAD  _debugbar/clockwork/{id} ........................................................................................... debugbar.clockwork ΓÇ║ Barryvdh\Debugbar ΓÇ║ OpenHandlerController@clockwork
+  GET|HEAD  _debugbar/open ...................................................................................................... debugbar.openhandler ΓÇ║ Barryvdh\Debugbar ΓÇ║ OpenHandlerController@handle
+  POST      _debugbar/queries/explain .......................................................................................... debugbar.queries.explain ΓÇ║ Barryvdh\Debugbar ΓÇ║ QueriesController@explain
+  GET|HEAD  confirm-password ................................................................................................................. password.confirm ΓÇ║ Auth\ConfirmablePasswordController@show
+  POST      confirm-password ................................................................................................................................... Auth\ConfirmablePasswordController@store
+  GET|HEAD  dashboard ............................................................................................................................................. dashboard ΓÇ║ DashboardController@index
+  POST      email/verification-notification ...................................................................................... verification.send ΓÇ║ Auth\EmailVerificationNotificationController@store
+  GET|HEAD  forgot-password .................................................................................................................. password.request ΓÇ║ Auth\PasswordResetLinkController@create
+  POST      forgot-password ..................................................................................................................... password.email ΓÇ║ Auth\PasswordResetLinkController@store
+  GET|HEAD  login .................................................................................................................................... login ΓÇ║ Auth\AuthenticatedSessionController@create
+  POST      login ............................................................................................................................................. Auth\AuthenticatedSessionController@store
+  POST      logout ................................................................................................................................. logout ΓÇ║ Auth\AuthenticatedSessionController@destroy
+  GET|HEAD  master ................................................................................................................................................ master.index ΓÇ║ MasterController@index
+  POST      master/aleg .................................................................................................................................. master.aleg.store ΓÇ║ MasterController@storeAleg
+  DELETE    master/aleg/{aleg} ....................................................................................................................... master.aleg.destroy ΓÇ║ MasterController@destroyAleg
+  POST      master/kategori ...................................................................................................................... master.kategori.store ΓÇ║ MasterController@storeKategori
+  DELETE    master/kategori/{kategori} ....................................................................................................... master.kategori.destroy ΓÇ║ MasterController@destroyKategori
+  POST      master/opd ..................................................................................................................................... master.opd.store ΓÇ║ MasterController@storeOpd
+  DELETE    master/opd/{opd} ........................................................................................................................... master.opd.destroy ΓÇ║ MasterController@destroyOpd
+  GET|HEAD  master/plans ............................................................................................................................................. plans.index ΓÇ║ PlanController@index
+  DELETE    master/plans/aleg .......................................................................................................................... plans.destroyAleg ΓÇ║ PlanController@destroyByAleg
+  POST      master/plans/import .................................................................................................................................... plans.import ΓÇ║ PlanController@import
+  POST      master/plans/store ....................................................................................................................................... plans.store ΓÇ║ PlanController@store
+  PUT       master/plans/{plan} .................................................................................................................................... plans.update ΓÇ║ PlanController@update
+  DELETE    master/plans/{plan} .................................................................................................................................. plans.destroy ΓÇ║ PlanController@destroy
+  PUT       password ................................................................................................................................... password.update ΓÇ║ Auth\PasswordController@update
+  GET|HEAD  pokir ................................................................................................................................................... pokir.index ΓÇ║ PokirController@index
+  POST      pokir ................................................................................................................................................... pokir.store ΓÇ║ PokirController@store
+  GET|HEAD  pokir/create .......................................................................................................................................... pokir.create ΓÇ║ PokirController@create
+  GET|HEAD  pokir/export ..................................................................................................................................... pokir.export ΓÇ║ PokirController@exportExcel
+  GET|HEAD  pokir/input-massal .................................................................................................................................. pokir.bulk ΓÇ║ PokirController@createBulk
+  POST      pokir/input-massal .............................................................................................................................. pokir.storeBulk ΓÇ║ PokirController@storeBulk
+  GET|HEAD  pokir/print ............................................................................................................................................. pokir.print ΓÇ║ PokirController@print
+  GET|HEAD  profile ............................................................................................................................................... profile.edit ΓÇ║ ProfileController@edit
+  PATCH     profile ........................................................................................................................................... profile.update ΓÇ║ ProfileController@update
+  DELETE    profile ......................................................................................................................................... profile.destroy ΓÇ║ ProfileController@destroy
+  GET|HEAD  register .................................................................................................................................... register ΓÇ║ Auth\RegisteredUserController@create
+  POST      register ................................................................................................................................................ Auth\RegisteredUserController@store
+  POST      reses/cetak .......................................................................................................................................... reses.print ΓÇ║ ResesController@printPdf
+  GET|HEAD  reses/lampiran .......................................................................................................................................... reses.index ΓÇ║ ResesController@index
+  POST      reset-password ............................................................................................................................ password.store ΓÇ║ Auth\NewPasswordController@store
+  GET|HEAD  reset-password/{token} ................................................................................................................... password.reset ΓÇ║ Auth\NewPasswordController@create
+  GET|HEAD  storage/{path} ................................................................................................................................................................ storage.local
+  GET|HEAD  up .......................................................................................................................................................................................... 
+  GET|HEAD  verify-email ................................................................................................................... verification.notice ΓÇ║ Auth\EmailVerificationPromptController
+  GET|HEAD  verify-email/{id}/{hash} ................................................................................................................... verification.verify ΓÇ║ Auth\VerifyEmailController
 
-                                                                                                                                                                                                       Showing [48] routes
+                                                                                                                                                                                      Showing [50] routes
 
 ```
 
@@ -1412,6 +1468,62 @@ class ProfileController extends Controller
     }
 }
 
+===== app\Http\Controllers\ResesController.php =====
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
+
+class ResesController extends Controller
+{
+    public function index()
+    {
+        return view('reses.index');
+    }
+
+    public function printPdf(Request $request)
+    {
+        ini_set('memory_limit', '512M');
+        ini_set('max_execution_time', '300');
+
+        $data = $request->validate([
+            'global_masa_sidang' => 'nullable|string',
+            'global_dapil'       => 'nullable|string',
+            'sheets'             => 'array',
+            'sheets.*.title'     => 'nullable|string',
+            'sheets.*.tanggal'   => 'nullable|string',
+            'sheets.*.layout'    => 'required|numeric',
+            'sheets.*.photos'    => 'array',
+        ]);
+
+        foreach ($data['sheets'] as $key => &$sheet) {
+            $photos = $sheet['photos'] ?? [];
+            $layoutCount = (int) $sheet['layout'];
+
+            for ($i = count($photos); $i < $layoutCount; $i++) {
+                $photos[] = null;
+            }
+            // Genapkan array kecuali layout 3 (karena layout 3 logicnya manual)
+            if ($layoutCount != 3 && count($photos) % 2 != 0) {
+                $photos[] = null;
+            }
+            $sheet['photos'] = $photos;
+        }
+
+        $pdf = Pdf::loadView('reses.pdf', $data)
+                  ->setPaper('a4', 'portrait')
+                  ->setOption([
+                      'dpi' => 120, 
+                      'isRemoteEnabled' => true, 
+                      'isHtml5ParserEnabled' => true
+                  ]);
+
+        return $pdf->stream('Laporan_SPJ_Reses.pdf');
+    }
+}
+
 ```
 
 
@@ -2152,7 +2264,9 @@ $classes = ($active ?? false)
         <x-nav-link :href="route('plans.index')" :active="request()->routeIs('plans.*')">
             {{ __('Master Pagu') }}
         </x-nav-link>
-
+        <x-nav-link :href="route('reses.index')" :active="request()->routeIs('reses.*')">
+            {{ __('Lampiran Reses') }}
+        </x-nav-link>
         <x-nav-link :href="route('pokir.bulk')" :active="request()->routeIs('pokir.bulk')">
             {{ __('Input Usulan') }}
         </x-nav-link>
@@ -3325,6 +3439,372 @@ $classes = ($active ?? false)
         </div>
     </div>
 </x-app-layout>
+
+===== resources\views\reses\index.blade.php =====
+<x-app-layout>
+    <x-slot name="header">
+        <div class="flex justify-between items-center sticky top-0 z-50">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                {{ __('Generator SPJ Reses (Master Date)') }}
+            </h2>
+            <button onclick="document.getElementById('btn-submit').click()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-bold text-sm shadow-md flex items-center gap-2 transition transform hover:scale-105">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                DOWNLOAD PDF
+            </button>
+        </div>
+    </x-slot>
+
+    <div class="py-8 bg-gray-600 min-h-screen" x-data="resesApp()" x-init="initData()">
+        
+        <form id="form-pdf" action="{{ route('reses.print') }}" method="POST" target="_blank">
+            @csrf
+
+            <div class="max-w-7xl mx-auto px-4 mb-8">
+                <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-yellow-500">
+                    <h3 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">MASTER DATA GLOBAL</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Masa Sidang</label>
+                            <textarea name="global_masa_sidang" x-model="global.masa_sidang" rows="2" class="w-full text-sm border-gray-300 rounded focus:ring-yellow-500"></textarea>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Dapil / Wilayah</label>
+                            <textarea name="global_dapil" x-model="global.dapil" rows="2" class="w-full text-sm border-gray-300 rounded focus:ring-yellow-500"></textarea>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Tanggal Kegiatan (Default)</label>
+                            <textarea name="global_tanggal" x-model="global.tanggal" rows="2" class="w-full text-sm border-gray-300 rounded focus:ring-yellow-500 placeholder-gray-400" placeholder="Contoh: Senin, 2 Februari 2026"></textarea>
+                            <p class="text-[10px] text-gray-400 mt-1">*Tanggal ini akan dipakai di semua halaman.</p>
+                        </div>
+                    </div>
+
+                    <h3 class="font-bold text-sm text-gray-800 mb-2">DAFTAR HALAMAN (TEMPLATE)</h3>
+                    <div class="space-y-2 mb-4 bg-gray-50 p-4 rounded-lg">
+                        <template x-for="(config, index) in masterConfig" :key="index">
+                            <div class="flex items-center gap-2">
+                                <span class="text-gray-500 font-mono w-6 text-sm" x-text="index+1 + '.'"></span>
+                                <input type="text" x-model="config.title" class="flex-grow text-sm border-gray-300 rounded font-bold uppercase" placeholder="JUDUL HALAMAN">
+                                <select x-model="config.layout" class="text-sm border-gray-300 rounded w-40">
+                                    <option value="8">8 Kotak</option>
+                                    <option value="6">6 Kotak</option>
+                                    <option value="3">3 Kotak</option>
+                                </select>
+                                <button type="button" @click="removeMasterItem(index)" class="text-red-500 hover:text-red-700 p-1">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            </div>
+                        </template>
+                        <button type="button" @click="addMasterItem()" class="text-sm text-blue-600 hover:underline font-bold mt-2">+ Tambah Judul Baru</button>
+                    </div>
+
+                    <div class="flex justify-end border-t pt-4">
+                        <button type="button" @click="generateFromMaster()" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold shadow-lg hover:bg-green-700 transition flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            GENERATE LEMBAR KERJA
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col items-center gap-8 pb-32">
+                
+                <template x-for="(sheet, sheetIndex) in sheets" :key="sheet.id">
+                    <div class="relative group/sheet">
+                        
+                        <div class="bg-white shadow-2xl relative transition-all" 
+                             style="width: 210mm; min-height: 297mm; padding: 10mm; padding-bottom: 20mm;">
+                            
+                            <div class="text-center mb-2 font-tahoma text-12pt">
+                                <div class="mb-1">Lampiran Fhoto</div>
+                                <input type="text" :name="`sheets[${sheetIndex}][title]`" x-model="sheet.title" 
+                                       class="block w-full text-center font-bold border-none focus:ring-0 focus:bg-yellow-100 p-0 bg-transparent uppercase text-12pt" 
+                                       placeholder="JUDUL KEGIATAN">
+                                <div x-text="global.masa_sidang" class="whitespace-pre-wrap"></div>
+                                <div x-text="global.dapil" class="whitespace-pre-wrap"></div>
+                                
+                                <input type="text" :name="`sheets[${sheetIndex}][tanggal]`" x-model="sheet.tanggal" 
+                                       class="block w-full text-center border-none focus:ring-0 focus:bg-yellow-100 p-0 bg-transparent text-12pt mt-1"
+                                       placeholder="Tanggal...">
+                                
+                                <input type="hidden" :name="`sheets[${sheetIndex}][layout]`" :value="sheet.layout">
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-x-[5mm] gap-y-[5mm]" 
+                                 @dragover.prevent="isDragging = true" 
+                                 @dragleave.prevent="isDragging = false"
+                                 @drop.prevent="handleBatchDrop($event, sheetIndex); isDragging = false">
+                                
+                                <template x-for="(photo, photoIndex) in sheet.photos" :key="photoIndex">
+                                    
+                                    <div class="relative border-2 border-black bg-gray-50 group/box hover:border-blue-500 transition overflow-hidden"
+                                         :class="{
+                                             'col-span-2': sheet.layout == '3' && photoIndex === 0 
+                                         }"
+                                         :style="`height: ${getBoxHeight(sheet.layout)}`">
+                                        
+                                        <input type="hidden" :name="`sheets[${sheetIndex}][photos][]`" :value="photo">
+
+                                        <template x-if="photo">
+                                            <div class="w-full h-full relative">
+                                                <img :src="photo" class="w-full h-full object-cover">
+                                                <button type="button" @click="removePhoto(sheetIndex, photoIndex)" class="absolute top-1 right-1 bg-white text-red-600 rounded-full p-1 opacity-0 group-hover/box:opacity-100 transition z-10 shadow">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                                </button>
+                                            </div>
+                                        </template>
+
+                                        <template x-if="!photo">
+                                            <div class="absolute inset-0 flex flex-col items-center justify-center text-gray-300 pointer-events-none">
+                                                <span class="text-2xl font-bold" x-text="photoIndex + 1"></span>
+                                                <span class="text-xs">DROP</span>
+                                            </div>
+                                        </template>
+
+                                        <template x-if="!photo">
+                                            <input type="file" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" @change="handleSingleFile($event, sheetIndex, photoIndex)">
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
+                            
+                            <div class="absolute bottom-2 right-6 text-gray-400 text-xs font-mono">
+                                Halaman <span x-text="sheetIndex + 1"></span>
+                            </div>
+
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <button type="button" id="btn-submit" @click="submitPDF()" class="hidden"></button>
+
+            <div x-show="isProcessing" class="fixed inset-0 bg-black/80 flex items-center justify-center z-[60]">
+                <div class="bg-white p-6 rounded-lg text-center">
+                    <svg class="animate-spin h-10 w-10 text-indigo-600 mx-auto mb-3" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <p class="font-bold">Memproses Foto...</p>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+    <script src="{{ asset('js/reses-logic.js') }}"></script>
+    <style>
+        .font-tahoma { font-family: Tahoma, sans-serif; }
+        .text-12pt { font-size: 12pt; line-height: 1.3; }
+        input:focus, textarea:focus { box-shadow: none !important; border-color: transparent !important; outline: none; }
+    </style>
+</x-app-layout>
+
+===== resources\views\reses\pdf.blade.php =====
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Laporan SPJ</title>
+    <style>
+        /* Margin: Atas/Kiri/Kanan 10mm. Bawah 5mm. */
+        @page {
+            margin: 10mm;
+            margin-bottom: 5mm;
+            margin-left: 10mm;
+            margin-right: 10mm;
+        }
+
+        body {
+            /* GANTI FONT DI SINI */
+            /* Kita pakai Helvetica/Arial agar terbaca Sans-Serif (Bersih) di PDF */
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 12pt;
+        }
+
+        .page-container {
+            page-break-after: always;
+            width: 100%;
+        }
+
+        .page-container:last-child {
+            page-break-after: avoid;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 5mm;
+        }
+
+        .header h1 {
+            font-size: 12pt;
+            font-weight: normal;
+            margin: 0;
+        }
+
+        .header h2 {
+            font-size: 12pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin: 2px 0;
+        }
+
+        .header p {
+            margin: 1px 0;
+            font-size: 12pt;
+        }
+
+        /* TABEL UTAMA */
+        .grid-table {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+            margin-left: -2.5mm;
+            margin-right: -2.5mm;
+        }
+
+        .grid-table td {
+            padding: 2.5mm;
+            /* GAP */
+            vertical-align: top;
+        }
+
+        /* INNER BOX */
+        .photo-box {
+            border: 3px solid #000;
+            background-color: #fff;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            display: block;
+        }
+
+        .photo-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* --- TINGGI BOX (SAFE MODE) --- */
+
+        /* Layout 8: 4 Baris */
+        .h-55mm {
+            height: 55mm;
+        }
+
+        /* Layout 6: 3 Baris */
+        .h-75mm {
+            height: 75mm;
+        }
+
+        /* Layout 3: 2 Baris */
+        .h-110mm {
+            height: 110mm;
+        }
+
+        .empty-text {
+            text-align: center;
+            color: #ccc;
+            font-weight: bold;
+            font-size: 20px;
+            line-height: 100%;
+            padding-top: 25%;
+        }
+    </style>
+</head>
+
+<body>
+
+    @foreach ($sheets as $sheet)
+        <div class="page-container">
+
+            <div class="header">
+                <h1>Lampiran Fhoto</h1>
+                <h2>{{ $sheet['title'] ?? 'KEGIATAN' }}</h2>
+                <p>{{ $global_masa_sidang }}</p>
+                <p>{{ $global_dapil }}</p>
+                <p>{{ $sheet['tanggal'] ?? '' }}</p>
+            </div>
+
+            <table class="grid-table">
+                @php
+                    $photos = $sheet['photos'];
+                    $layout = (int) $sheet['layout'];
+                @endphp
+
+                {{-- === LOGIC LAYOUT 3 KOTAK (2 BARIS) === --}}
+                @if ($layout == 3)
+                    <tr>
+                        <td colspan="2">
+                            <div class="photo-box h-110mm">
+                                @if (!empty($photos[0]))
+                                    <img src="{{ $photos[0] }}" class="photo-img" style="height: 110mm;">
+                                @else
+                                    <div class="empty-text">1</div>
+                                @endif
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="50%">
+                            <div class="photo-box h-110mm">
+                                @if (!empty($photos[1]))
+                                    <img src="{{ $photos[1] }}" class="photo-img" style="height: 110mm;">
+                                @else
+                                    <div class="empty-text">2</div>
+                                @endif
+                            </div>
+                        </td>
+                        <td width="50%">
+                            <div class="photo-box h-110mm">
+                                @if (!empty($photos[2]))
+                                    <img src="{{ $photos[2] }}" class="photo-img" style="height: 110mm;">
+                                @else
+                                    <div class="empty-text">3</div>
+                                @endif
+                            </div>
+                        </td>
+                    </tr>
+
+                    {{-- === LOGIC LAYOUT 6 & 8 === --}}
+                @else
+                    @php
+                        // Pilih tinggi berdasarkan layout
+                        $heightClass = $layout == 6 ? 'h-75mm' : 'h-55mm';
+                        $imgHeight = $layout == 6 ? '75mm' : '55mm';
+                    @endphp
+
+                    @for ($i = 0; $i < count($photos); $i += 2)
+                        <tr>
+                            <td width="50%">
+                                <div class="photo-box {{ $heightClass }}">
+                                    @if (!empty($photos[$i]))
+                                        <img src="{{ $photos[$i] }}" class="photo-img"
+                                            style="height: {{ $imgHeight }};">
+                                    @else
+                                        <div class="empty-text">{{ $i + 1 }}</div>
+                                    @endif
+                                </div>
+                            </td>
+                            <td width="50%">
+                                <div class="photo-box {{ $heightClass }}">
+                                    @if (isset($photos[$i + 1]) && !empty($photos[$i + 1]))
+                                        <img src="{{ $photos[$i + 1] }}" class="photo-img"
+                                            style="height: {{ $imgHeight }};">
+                                    @elseif($i + 1 < $layout)
+                                        <div class="empty-text">{{ $i + 2 }}</div>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @endfor
+                @endif
+            </table>
+        </div>
+    @endforeach
+
+</body>
+
+</html>
 
 ===== resources\views\dashboard.blade.php =====
 <x-app-layout>

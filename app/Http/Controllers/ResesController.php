@@ -18,6 +18,8 @@ class ResesController extends Controller
         ini_set('max_execution_time', '300');
 
         $data = $request->validate([
+            'global_header_type' => 'required|string',
+            'global_deskripsi'   => 'nullable|string',
             'global_masa_sidang' => 'nullable|string',
             'global_dapil'       => 'nullable|string',
             'sheets'             => 'array',
@@ -34,7 +36,6 @@ class ResesController extends Controller
             for ($i = count($photos); $i < $layoutCount; $i++) {
                 $photos[] = null;
             }
-            // Genapkan array kecuali layout 3 (karena layout 3 logicnya manual)
             if ($layoutCount != 3 && count($photos) % 2 != 0) {
                 $photos[] = null;
             }
@@ -42,13 +43,19 @@ class ResesController extends Controller
         }
 
         $pdf = Pdf::loadView('reses.pdf', $data)
-                  ->setPaper('a4', 'portrait')
-                  ->setOption([
-                      'dpi' => 120, 
-                      'isRemoteEnabled' => true, 
-                      'isHtml5ParserEnabled' => true
-                  ]);
+            ->setPaper('a4', 'portrait')
+            ->setOption([
+                'dpi' => 120,
+                'isRemoteEnabled' => true,
+                'isHtml5ParserEnabled' => true
+            ]);
 
-        return $pdf->stream('Laporan_SPJ_Reses.pdf');
+        // --- UPDATE: BUAT NAMA FILE DINAMIS ---
+        // Contoh hasil: Reses_Standar_20260208_1030.pdf
+        $jenis = ucfirst($data['global_header_type']); // Standar / Tatap_muka
+        $waktu = date('Ymd_His'); // Jam detik unik
+        $namaFile = "Laporan_Reses_{$jenis}_{$waktu}.pdf";
+
+        return $pdf->stream($namaFile);
     }
 }
