@@ -25,7 +25,9 @@
         <x-nav-link :href="route('plans.index')" :active="request()->routeIs('plans.*')">
             {{ __('Master Pagu') }}
         </x-nav-link>
-
+        <x-nav-link :href="route('reses.index')" :active="request()->routeIs('reses.*')">
+            {{ __('Lampiran Reses') }}
+        </x-nav-link>
         <x-nav-link :href="route('pokir.bulk')" :active="request()->routeIs('pokir.bulk')">
             {{ __('Input Usulan') }}
         </x-nav-link>

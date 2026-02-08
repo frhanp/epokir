@@ -7,6 +7,7 @@ use App\Http\Controllers\MasterController;
 use App\Http\Controllers\AiController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PlanController;
+use App\Http\Controllers\ResesController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -51,6 +52,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/master/plans/store', [PlanController::class, 'store'])->name('plans.store');
     Route::delete('/master/plans/aleg', [PlanController::class, 'destroyByAleg'])->name('plans.destroyAleg');
     Route::delete('/master/plans/{plan}', [PlanController::class, 'destroy'])->name('plans.destroy');
+
+    Route::get('/reses/lampiran', [ResesController::class, 'index'])->name('reses.index');
+Route::post('/reses/cetak', [ResesController::class, 'printPdf'])->name('reses.print');
 
 
 
