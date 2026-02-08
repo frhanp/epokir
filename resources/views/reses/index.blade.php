@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex justify-between items-center sticky top-0 z-50">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Generator SPJ Reses (Safe Mode)') }}
+                {{ __('Generator SPJ Reses (Master Date)') }}
             </h2>
             <button onclick="document.getElementById('btn-submit').click()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-bold text-sm shadow-md flex items-center gap-2 transition transform hover:scale-105">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
@@ -18,37 +18,46 @@
 
             <div class="max-w-7xl mx-auto px-4 mb-8">
                 <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-yellow-500">
-                    <h3 class="font-bold text-lg mb-4 text-gray-800">MASTER DATA SPJ</h3>
+                    <h3 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">MASTER DATA GLOBAL</h3>
                     
-                    <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                         <div>
-                            <label class="text-xs font-bold text-gray-500">Masa Sidang</label>
-                            <input type="text" name="global_masa_sidang" x-model="global.masa_sidang" class="w-full text-sm border-gray-300 rounded">
+                            <label class="text-xs font-bold text-gray-500 uppercase">Masa Sidang</label>
+                            <textarea name="global_masa_sidang" x-model="global.masa_sidang" rows="2" class="w-full text-sm border-gray-300 rounded focus:ring-yellow-500"></textarea>
                         </div>
                         <div>
-                            <label class="text-xs font-bold text-gray-500">Dapil</label>
-                            <input type="text" name="global_dapil" x-model="global.dapil" class="w-full text-sm border-gray-300 rounded">
+                            <label class="text-xs font-bold text-gray-500 uppercase">Dapil / Wilayah</label>
+                            <textarea name="global_dapil" x-model="global.dapil" rows="2" class="w-full text-sm border-gray-300 rounded focus:ring-yellow-500"></textarea>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Tanggal Kegiatan (Default)</label>
+                            <textarea name="global_tanggal" x-model="global.tanggal" rows="2" class="w-full text-sm border-gray-300 rounded focus:ring-yellow-500 placeholder-gray-400" placeholder="Contoh: Senin, 2 Februari 2026"></textarea>
+                            <p class="text-[10px] text-gray-400 mt-1">*Tanggal ini akan dipakai di semua halaman.</p>
                         </div>
                     </div>
 
-                    <div class="space-y-2 mb-4">
+                    <h3 class="font-bold text-sm text-gray-800 mb-2">DAFTAR HALAMAN (TEMPLATE)</h3>
+                    <div class="space-y-2 mb-4 bg-gray-50 p-4 rounded-lg">
                         <template x-for="(config, index) in masterConfig" :key="index">
                             <div class="flex items-center gap-2">
-                                <span class="text-gray-500 font-mono w-6" x-text="index+1 + '.'"></span>
-                                <input type="text" x-model="config.title" class="flex-grow text-sm border-gray-300 rounded font-bold" placeholder="JUDUL HALAMAN">
+                                <span class="text-gray-500 font-mono w-6 text-sm" x-text="index+1 + '.'"></span>
+                                <input type="text" x-model="config.title" class="flex-grow text-sm border-gray-300 rounded font-bold uppercase" placeholder="JUDUL HALAMAN">
                                 <select x-model="config.layout" class="text-sm border-gray-300 rounded w-40">
-                                    <option value="8">8 Kotak (4 Baris)</option>
-                                    <option value="6">6 Kotak (3 Baris)</option>
-                                    <option value="3">3 Kotak (2 Baris)</option>
+                                    <option value="8">8 Kotak</option>
+                                    <option value="6">6 Kotak</option>
+                                    <option value="3">3 Kotak</option>
                                 </select>
-                                <button type="button" @click="removeMasterItem(index)" class="text-red-500 hover:text-red-700">Hapus</button>
+                                <button type="button" @click="removeMasterItem(index)" class="text-red-500 hover:text-red-700 p-1">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
                             </div>
                         </template>
+                        <button type="button" @click="addMasterItem()" class="text-sm text-blue-600 hover:underline font-bold mt-2">+ Tambah Judul Baru</button>
                     </div>
 
-                    <div class="flex gap-4">
-                        <button type="button" @click="addMasterItem()" class="text-sm text-blue-600 hover:underline font-bold">+ Tambah Baris</button>
-                        <button type="button" @click="generateFromMaster()" class="ml-auto bg-green-600 text-white px-4 py-2 rounded font-bold shadow hover:bg-green-700 transition">
+                    <div class="flex justify-end border-t pt-4">
+                        <button type="button" @click="generateFromMaster()" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold shadow-lg hover:bg-green-700 transition flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                             GENERATE LEMBAR KERJA
                         </button>
                     </div>
@@ -70,8 +79,11 @@
                                        placeholder="JUDUL KEGIATAN">
                                 <div x-text="global.masa_sidang" class="whitespace-pre-wrap"></div>
                                 <div x-text="global.dapil" class="whitespace-pre-wrap"></div>
+                                
                                 <input type="text" :name="`sheets[${sheetIndex}][tanggal]`" x-model="sheet.tanggal" 
-                                       class="block w-full text-center border-none focus:ring-0 focus:bg-yellow-100 p-0 bg-transparent text-12pt mt-1">
+                                       class="block w-full text-center border-none focus:ring-0 focus:bg-yellow-100 p-0 bg-transparent text-12pt mt-1"
+                                       placeholder="Tanggal...">
+                                
                                 <input type="hidden" :name="`sheets[${sheetIndex}][layout]`" :value="sheet.layout">
                             </div>
 
