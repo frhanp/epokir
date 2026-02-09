@@ -1,5 +1,5 @@
 ﻿# Project Digest (Full Content)
-_Generated: 2026-02-09 01:12:55_
+_Generated: 2026-02-09 14:10:30_
 **Root:** D:\Laragon\www\epokir
 
 
@@ -109,7 +109,6 @@ public\images
 public\js
 public\.htaccess
 public\favicon.ico
-public\hot
 public\index.php
 public\robots.txt
 public\images\logo-golkar.png
@@ -277,11 +276,11 @@ Branch:
 main
 
 Last 5 commits:
+9e21eaa add fitur opsi di header spj
 51c07d3 fix spj reses
 a6d1879 fix reses tahap 1
 43f3f32 commit sebelum fitur reses
 12d3fef add pagu
-fb35701 cek poin sebelum ada usulan pokir aleg
 ```
 
 
@@ -1489,6 +1488,8 @@ class ResesController extends Controller
         ini_set('max_execution_time', '300');
 
         $data = $request->validate([
+            'global_header_type' => 'required|string',
+            'global_deskripsi'   => 'nullable|string',
             'global_masa_sidang' => 'nullable|string',
             'global_dapil'       => 'nullable|string',
             'sheets'             => 'array',
@@ -1505,7 +1506,6 @@ class ResesController extends Controller
             for ($i = count($photos); $i < $layoutCount; $i++) {
                 $photos[] = null;
             }
-            // Genapkan array kecuali layout 3 (karena layout 3 logicnya manual)
             if ($layoutCount != 3 && count($photos) % 2 != 0) {
                 $photos[] = null;
             }
@@ -1513,14 +1513,20 @@ class ResesController extends Controller
         }
 
         $pdf = Pdf::loadView('reses.pdf', $data)
-                  ->setPaper('a4', 'portrait')
-                  ->setOption([
-                      'dpi' => 120, 
-                      'isRemoteEnabled' => true, 
-                      'isHtml5ParserEnabled' => true
-                  ]);
+            ->setPaper('a4', 'portrait')
+            ->setOption([
+                'dpi' => 120,
+                'isRemoteEnabled' => true,
+                'isHtml5ParserEnabled' => true
+            ]);
 
-        return $pdf->stream('Laporan_SPJ_Reses.pdf');
+        // --- UPDATE: BUAT NAMA FILE DINAMIS ---
+        // Contoh hasil: Reses_Standar_20260208_1030.pdf
+        $jenis = ucfirst($data['global_header_type']); // Standar / Tatap_muka
+        $waktu = date('Ymd_His'); // Jam detik unik
+        $namaFile = "Laporan_Reses_{$jenis}_{$waktu}.pdf";
+
+        return $pdf->stream($namaFile);
     }
 }
 
@@ -3445,7 +3451,7 @@ $classes = ($active ?? false)
     <x-slot name="header">
         <div class="flex justify-between items-center sticky top-0 z-50">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Generator SPJ Reses (Master Date)') }}
+                {{ __('Generator SPJ Reses (Final)') }}
             </h2>
             <button onclick="document.getElementById('btn-submit').click()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-bold text-sm shadow-md flex items-center gap-2 transition transform hover:scale-105">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
@@ -3461,9 +3467,16 @@ $classes = ($active ?? false)
 
             <div class="max-w-7xl mx-auto px-4 mb-8">
                 <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-yellow-500">
-                    <h3 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">MASTER DATA GLOBAL</h3>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="mb-6 border-b pb-4 bg-yellow-50 p-4 rounded-lg">
+                        <label class="text-sm font-bold text-gray-700 block mb-2">PILIH FORMAT HEADER:</label>
+                        <select name="global_header_type" x-model="global.header_type" class="w-full md:w-1/2 border-gray-300 rounded font-bold text-gray-800 focus:ring-yellow-500">
+                            <option value="standar">Format A: Standar (Transport, Makan, dll)</option>
+                            <option value="tatap_muka">Format B: Tatap Muka (Ada Deskripsi)</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         <div>
                             <label class="text-xs font-bold text-gray-500 uppercase">Masa Sidang</label>
                             <textarea name="global_masa_sidang" x-model="global.masa_sidang" rows="2" class="w-full text-sm border-gray-300 rounded focus:ring-yellow-500"></textarea>
@@ -3472,15 +3485,20 @@ $classes = ($active ?? false)
                             <label class="text-xs font-bold text-gray-500 uppercase">Dapil / Wilayah</label>
                             <textarea name="global_dapil" x-model="global.dapil" rows="2" class="w-full text-sm border-gray-300 rounded focus:ring-yellow-500"></textarea>
                         </div>
-                        <div>
-                            <label class="text-xs font-bold text-gray-500 uppercase">Tanggal Kegiatan (Default)</label>
-                            <textarea name="global_tanggal" x-model="global.tanggal" rows="2" class="w-full text-sm border-gray-300 rounded focus:ring-yellow-500 placeholder-gray-400" placeholder="Contoh: Senin, 2 Februari 2026"></textarea>
-                            <p class="text-[10px] text-gray-400 mt-1">*Tanggal ini akan dipakai di semua halaman.</p>
+                        
+                        <div x-show="global.header_type == 'tatap_muka'" class="col-span-1 md:col-span-2 bg-blue-50 p-3 rounded border border-blue-200" x-transition>
+                            <label class="text-xs font-bold text-blue-700 uppercase">Deskripsi Kegiatan (Tatap Muka)</label>
+                            <textarea name="global_deskripsi" x-model="global.deskripsi" rows="2" class="w-full text-sm border-blue-300 rounded focus:ring-blue-500" placeholder="Contoh: Tatap muka dengan masyarakat Desa..."></textarea>
+                        </div>
+
+                        <div class="col-span-1 md:col-span-2">
+                            <label class="text-xs font-bold text-gray-500 uppercase">Tanggal (Otomatis ke semua halaman)</label>
+                            <input type="text" name="global_tanggal" x-model="global.tanggal" class="w-full text-sm border-gray-300 rounded focus:ring-yellow-500 font-bold">
                         </div>
                     </div>
 
-                    <h3 class="font-bold text-sm text-gray-800 mb-2">DAFTAR HALAMAN (TEMPLATE)</h3>
                     <div class="space-y-2 mb-4 bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-bold text-xs text-gray-500 mb-2 uppercase">Daftar Halaman:</h4>
                         <template x-for="(config, index) in masterConfig" :key="index">
                             <div class="flex items-center gap-2">
                                 <span class="text-gray-500 font-mono w-6 text-sm" x-text="index+1 + '.'"></span>
@@ -3490,17 +3508,14 @@ $classes = ($active ?? false)
                                     <option value="6">6 Kotak</option>
                                     <option value="3">3 Kotak</option>
                                 </select>
-                                <button type="button" @click="removeMasterItem(index)" class="text-red-500 hover:text-red-700 p-1">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                </button>
+                                <button type="button" @click="removeMasterItem(index)" class="text-red-500 hover:text-red-700 p-1">Hapus</button>
                             </div>
                         </template>
-                        <button type="button" @click="addMasterItem()" class="text-sm text-blue-600 hover:underline font-bold mt-2">+ Tambah Judul Baru</button>
+                        <button type="button" @click="addMasterItem()" class="text-sm text-blue-600 hover:underline font-bold mt-2">+ Tambah Halaman</button>
                     </div>
 
                     <div class="flex justify-end border-t pt-4">
                         <button type="button" @click="generateFromMaster()" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold shadow-lg hover:bg-green-700 transition flex items-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                             GENERATE LEMBAR KERJA
                         </button>
                     </div>
@@ -3508,25 +3523,36 @@ $classes = ($active ?? false)
             </div>
 
             <div class="flex flex-col items-center gap-8 pb-32">
-                
                 <template x-for="(sheet, sheetIndex) in sheets" :key="sheet.id">
                     <div class="relative group/sheet">
-                        
-                        <div class="bg-white shadow-2xl relative transition-all" 
-                             style="width: 210mm; min-height: 297mm; padding: 10mm; padding-bottom: 20mm;">
+                        <div class="bg-white shadow-2xl relative transition-all" style="width: 210mm; min-height: 297mm; padding: 10mm; padding-bottom: 20mm;">
                             
-                            <div class="text-center mb-2 font-tahoma text-12pt">
-                                <div class="mb-1">Lampiran Fhoto</div>
-                                <input type="text" :name="`sheets[${sheetIndex}][title]`" x-model="sheet.title" 
-                                       class="block w-full text-center font-bold border-none focus:ring-0 focus:bg-yellow-100 p-0 bg-transparent uppercase text-12pt" 
-                                       placeholder="JUDUL KEGIATAN">
-                                <div x-text="global.masa_sidang" class="whitespace-pre-wrap"></div>
-                                <div x-text="global.dapil" class="whitespace-pre-wrap"></div>
+                            <div class="text-center mb-4 font-tahoma text-12pt">
                                 
-                                <input type="text" :name="`sheets[${sheetIndex}][tanggal]`" x-model="sheet.tanggal" 
-                                       class="block w-full text-center border-none focus:ring-0 focus:bg-yellow-100 p-0 bg-transparent text-12pt mt-1"
-                                       placeholder="Tanggal...">
+                                <template x-if="global.header_type == 'standar'">
+                                    <div>
+                                        <div class="mb-1">Lampiran Fhoto</div>
+                                        <div x-text="sheet.title" class="font-bold uppercase"></div>
+                                        <div x-text="global.masa_sidang"></div>
+                                        <div x-text="global.dapil"></div>
+                                    </div>
+                                </template>
+
+                                <template x-if="global.header_type == 'tatap_muka'">
+                                    <div>
+                                        <div>Lampiran</div>
+                                        <div class="mb-1">Foto</div>
+                                        <div x-text="global.masa_sidang"></div>
+                                        <div class="mb-1">Daerah</div>
+                                        <div x-text="global.dapil"></div>
+                                        <div x-text="global.deskripsi" class="mt-1 font-bold"></div>
+                                    </div>
+                                </template>
+
+                                <div x-text="sheet.tanggal" class="mt-1"></div>
                                 
+                                <input type="hidden" :name="`sheets[${sheetIndex}][title]`" :value="sheet.title">
+                                <input type="hidden" :name="`sheets[${sheetIndex}][tanggal]`" :value="sheet.tanggal">
                                 <input type="hidden" :name="`sheets[${sheetIndex}][layout]`" :value="sheet.layout">
                             </div>
 
@@ -3534,61 +3560,40 @@ $classes = ($active ?? false)
                                  @dragover.prevent="isDragging = true" 
                                  @dragleave.prevent="isDragging = false"
                                  @drop.prevent="handleBatchDrop($event, sheetIndex); isDragging = false">
-                                
                                 <template x-for="(photo, photoIndex) in sheet.photos" :key="photoIndex">
-                                    
                                     <div class="relative border-2 border-black bg-gray-50 group/box hover:border-blue-500 transition overflow-hidden"
-                                         :class="{
-                                             'col-span-2': sheet.layout == '3' && photoIndex === 0 
-                                         }"
+                                         :class="{'col-span-2': sheet.layout == '3' && photoIndex === 0}"
                                          :style="`height: ${getBoxHeight(sheet.layout)}`">
                                         
                                         <input type="hidden" :name="`sheets[${sheetIndex}][photos][]`" :value="photo">
-
                                         <template x-if="photo">
                                             <div class="w-full h-full relative">
                                                 <img :src="photo" class="w-full h-full object-cover">
-                                                <button type="button" @click="removePhoto(sheetIndex, photoIndex)" class="absolute top-1 right-1 bg-white text-red-600 rounded-full p-1 opacity-0 group-hover/box:opacity-100 transition z-10 shadow">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                                </button>
+                                                <button type="button" @click="removePhoto(sheetIndex, photoIndex)" class="absolute top-1 right-1 bg-white text-red-600 rounded-full p-1 opacity-0 group-hover/box:opacity-100 transition z-10 shadow"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
                                             </div>
                                         </template>
-
                                         <template x-if="!photo">
                                             <div class="absolute inset-0 flex flex-col items-center justify-center text-gray-300 pointer-events-none">
                                                 <span class="text-2xl font-bold" x-text="photoIndex + 1"></span>
                                                 <span class="text-xs">DROP</span>
                                             </div>
                                         </template>
-
                                         <template x-if="!photo">
                                             <input type="file" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" @change="handleSingleFile($event, sheetIndex, photoIndex)">
                                         </template>
                                     </div>
                                 </template>
                             </div>
-                            
-                            <div class="absolute bottom-2 right-6 text-gray-400 text-xs font-mono">
-                                Halaman <span x-text="sheetIndex + 1"></span>
-                            </div>
-
+                            <div class="absolute bottom-2 right-6 text-gray-400 text-xs font-mono">Halaman <span x-text="sheetIndex + 1"></span></div>
                         </div>
                     </div>
                 </template>
             </div>
-
+            
             <button type="button" id="btn-submit" @click="submitPDF()" class="hidden"></button>
-
-            <div x-show="isProcessing" class="fixed inset-0 bg-black/80 flex items-center justify-center z-[60]">
-                <div class="bg-white p-6 rounded-lg text-center">
-                    <svg class="animate-spin h-10 w-10 text-indigo-600 mx-auto mb-3" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    <p class="font-bold">Memproses Foto...</p>
-                </div>
-            </div>
-
+            <div x-show="isProcessing" class="fixed inset-0 bg-black/80 flex items-center justify-center z-[60]"><div class="bg-white p-6 rounded-lg text-center"><p class="font-bold">Memproses...</p></div></div>
         </form>
     </div>
-
     <script src="{{ asset('js/reses-logic.js') }}"></script>
     <style>
         .font-tahoma { font-family: Tahoma, sans-serif; }
@@ -3600,210 +3605,101 @@ $classes = ($active ?? false)
 ===== resources\views\reses\pdf.blade.php =====
 <!DOCTYPE html>
 <html>
-
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Laporan SPJ</title>
     <style>
-        /* Margin: Atas/Kiri/Kanan 10mm. Bawah 5mm. */
-        @page {
-            margin: 10mm;
-            margin-bottom: 5mm;
-            margin-left: 10mm;
-            margin-right: 10mm;
-        }
+        @page { margin: 10mm; margin-bottom: 5mm; margin-left: 10mm; margin-right: 10mm; }
+        body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 12pt; }
+        
+        .page-container { page-break-after: always; width: 100%; }
+        .page-container:last-child { page-break-after: avoid; }
 
-        body {
-            /* GANTI FONT DI SINI */
-            /* Kita pakai Helvetica/Arial agar terbaca Sans-Serif (Bersih) di PDF */
-            font-family: 'Helvetica', 'Arial', sans-serif;
-            font-size: 12pt;
-        }
+        .header { text-align: center; margin-bottom: 5mm; }
+        .header p { margin: 1px 0; font-size: 12pt; }
+        .h-bold { font-weight: bold; text-transform: uppercase; }
 
-        .page-container {
-            page-break-after: always;
-            width: 100%;
-        }
+        .grid-table { width: 100%; table-layout: fixed; border-collapse: collapse; margin-left: -2.5mm; margin-right: -2.5mm; }
+        .grid-table td { padding: 2.5mm; vertical-align: top; }
 
-        .page-container:last-child {
-            page-break-after: avoid;
-        }
+        /* BORDER DIUBAH KE 3PX SESUAI REQUEST */
+        .photo-box { border: 3px solid #000; background-color: #fff; width: 100%; position: relative; overflow: hidden; display: block; }
+        .photo-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        
+        /* --- TINGGI BOX --- */
+        .h-55mm { height: 55mm; } /* Standar 8 Kotak */
+        .h-48mm { height: 48mm; } /* KHUSUS Format B (Header Tinggi) */
+        
+        .h-75mm { height: 75mm; } /* 6 Kotak */
+        .h-110mm { height: 110mm; } /* 3 Kotak */
 
-        .header {
-            text-align: center;
-            margin-bottom: 5mm;
-        }
-
-        .header h1 {
-            font-size: 12pt;
-            font-weight: normal;
-            margin: 0;
-        }
-
-        .header h2 {
-            font-size: 12pt;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin: 2px 0;
-        }
-
-        .header p {
-            margin: 1px 0;
-            font-size: 12pt;
-        }
-
-        /* TABEL UTAMA */
-        .grid-table {
-            width: 100%;
-            table-layout: fixed;
-            border-collapse: collapse;
-            margin-left: -2.5mm;
-            margin-right: -2.5mm;
-        }
-
-        .grid-table td {
-            padding: 2.5mm;
-            /* GAP */
-            vertical-align: top;
-        }
-
-        /* INNER BOX */
-        .photo-box {
-            border: 3px solid #000;
-            background-color: #fff;
-            width: 100%;
-            position: relative;
-            overflow: hidden;
-            display: block;
-        }
-
-        .photo-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        /* --- TINGGI BOX (SAFE MODE) --- */
-
-        /* Layout 8: 4 Baris */
-        .h-55mm {
-            height: 55mm;
-        }
-
-        /* Layout 6: 3 Baris */
-        .h-75mm {
-            height: 75mm;
-        }
-
-        /* Layout 3: 2 Baris */
-        .h-110mm {
-            height: 110mm;
-        }
-
-        .empty-text {
-            text-align: center;
-            color: #ccc;
-            font-weight: bold;
-            font-size: 20px;
-            line-height: 100%;
-            padding-top: 25%;
-        }
+        .empty-text { text-align: center; color: #ccc; font-weight: bold; font-size: 20px; padding-top: 25%; }
     </style>
 </head>
-
 <body>
 
-    @foreach ($sheets as $sheet)
-        <div class="page-container">
-
-            <div class="header">
-                <h1>Lampiran Fhoto</h1>
-                <h2>{{ $sheet['title'] ?? 'KEGIATAN' }}</h2>
+    @foreach($sheets as $sheet)
+    <div class="page-container">
+        
+        <div class="header">
+            @if($global_header_type == 'standar')
+                <p>Lampiran Fhoto</p>
+                <p class="h-bold">{{ $sheet['title'] ?? 'KEGIATAN' }}</p>
                 <p>{{ $global_masa_sidang }}</p>
                 <p>{{ $global_dapil }}</p>
                 <p>{{ $sheet['tanggal'] ?? '' }}</p>
-            </div>
+            @elseif($global_header_type == 'tatap_muka')
+                <p>Lampiran</p>
+                <p>Foto</p>
+                <p>{{ $global_masa_sidang }}</p>
+                <p>Daerah</p>
+                <p>{{ $global_dapil }}</p>
+                <p class="h-bold">{{ $global_deskripsi }}</p>
+                <p>{{ $sheet['tanggal'] ?? '' }}</p>
+            @endif
+        </div>
 
-            <table class="grid-table">
-                @php
-                    $photos = $sheet['photos'];
-                    $layout = (int) $sheet['layout'];
+        <table class="grid-table">
+            @php 
+                $photos = $sheet['photos'];
+                $layout = (int)$sheet['layout'];
+            @endphp
+
+            @if($layout == 3)
+                {{-- LAYOUT 3 KOTAK --}}
+                <tr>
+                    <td colspan="2"><div class="photo-box h-110mm">@if(!empty($photos[0])) <img src="{{ $photos[0] }}" class="photo-img"> @else <div class="empty-text">1</div> @endif</div></td>
+                </tr>
+                <tr>
+                    <td width="50%"><div class="photo-box h-110mm">@if(!empty($photos[1])) <img src="{{ $photos[1] }}" class="photo-img"> @else <div class="empty-text">2</div> @endif</div></td>
+                    <td width="50%"><div class="photo-box h-110mm">@if(!empty($photos[2])) <img src="{{ $photos[2] }}" class="photo-img"> @else <div class="empty-text">3</div> @endif</div></td>
+                </tr>
+            @else
+                {{-- LAYOUT 6 & 8 --}}
+                @php 
+                    // LOGIKA TINGGI BOX:
+                    if ($layout == 6) {
+                        $heightClass = 'h-75mm';
+                    } else {
+                        // Jika Layout 8: Cek Header Type
+                        // Kalau 'tatap_muka', header tinggi -> kotak harus pendek (48mm)
+                        // Kalau 'standar', header pendek -> kotak standar (55mm)
+                        $heightClass = ($global_header_type == 'tatap_muka') ? 'h-48mm' : 'h-55mm';
+                    }
                 @endphp
 
-                {{-- === LOGIC LAYOUT 3 KOTAK (2 BARIS) === --}}
-                @if ($layout == 3)
-                    <tr>
-                        <td colspan="2">
-                            <div class="photo-box h-110mm">
-                                @if (!empty($photos[0]))
-                                    <img src="{{ $photos[0] }}" class="photo-img" style="height: 110mm;">
-                                @else
-                                    <div class="empty-text">1</div>
-                                @endif
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td width="50%">
-                            <div class="photo-box h-110mm">
-                                @if (!empty($photos[1]))
-                                    <img src="{{ $photos[1] }}" class="photo-img" style="height: 110mm;">
-                                @else
-                                    <div class="empty-text">2</div>
-                                @endif
-                            </div>
-                        </td>
-                        <td width="50%">
-                            <div class="photo-box h-110mm">
-                                @if (!empty($photos[2]))
-                                    <img src="{{ $photos[2] }}" class="photo-img" style="height: 110mm;">
-                                @else
-                                    <div class="empty-text">3</div>
-                                @endif
-                            </div>
-                        </td>
-                    </tr>
-
-                    {{-- === LOGIC LAYOUT 6 & 8 === --}}
-                @else
-                    @php
-                        // Pilih tinggi berdasarkan layout
-                        $heightClass = $layout == 6 ? 'h-75mm' : 'h-55mm';
-                        $imgHeight = $layout == 6 ? '75mm' : '55mm';
-                    @endphp
-
-                    @for ($i = 0; $i < count($photos); $i += 2)
-                        <tr>
-                            <td width="50%">
-                                <div class="photo-box {{ $heightClass }}">
-                                    @if (!empty($photos[$i]))
-                                        <img src="{{ $photos[$i] }}" class="photo-img"
-                                            style="height: {{ $imgHeight }};">
-                                    @else
-                                        <div class="empty-text">{{ $i + 1 }}</div>
-                                    @endif
-                                </div>
-                            </td>
-                            <td width="50%">
-                                <div class="photo-box {{ $heightClass }}">
-                                    @if (isset($photos[$i + 1]) && !empty($photos[$i + 1]))
-                                        <img src="{{ $photos[$i + 1] }}" class="photo-img"
-                                            style="height: {{ $imgHeight }};">
-                                    @elseif($i + 1 < $layout)
-                                        <div class="empty-text">{{ $i + 2 }}</div>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                    @endfor
-                @endif
-            </table>
-        </div>
+                @for($i = 0; $i < count($photos); $i += 2)
+                <tr>
+                    <td width="50%"><div class="photo-box {{ $heightClass }}">@if(!empty($photos[$i])) <img src="{{ $photos[$i] }}" class="photo-img"> @else <div class="empty-text">{{ $i + 1 }}</div> @endif</div></td>
+                    <td width="50%"><div class="photo-box {{ $heightClass }}">@if(isset($photos[$i+1]) && !empty($photos[$i+1])) <img src="{{ $photos[$i+1] }}" class="photo-img"> @elseif($i+1 < $layout) <div class="empty-text">{{ $i + 2 }}</div> @endif</div></td>
+                </tr>
+                @endfor
+            @endif
+        </table>
+    </div>
     @endforeach
 
 </body>
-
 </html>
 
 ===== resources\views\dashboard.blade.php =====

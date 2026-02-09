@@ -2,6 +2,7 @@ function resesApp() {
     return {
         isProcessing: false,
         
+        // Data Default (Format A)
         masterConfig: [
             { title: 'PENERIMA TRANSPORT', layout: '8' },
             { title: 'KURSI', layout: '8' },
@@ -13,7 +14,8 @@ function resesApp() {
         
         global: {
             header_type: 'standar', 
-            deskripsi: 'Tatap muka dengan masyarakat Desa Tuladenggi Kec. Telaga Biru', 
+            // Deskripsi ini jadi "KOTAK SAKTI" untuk Format B & C
+            deskripsi: "KUNJUNGAN DALAM RANGKA MENINJAU\nMASYARAKAT PENERIMA BANTUAN TERNAK SAPI\nDI DESA BULOTA KECAMATAN TELAGA JAYA", 
             masa_sidang: '“Kegiatan Reses Masa Persidangan Kedua Tahun 2025 - 2026”',
             dapil: 'Daerah Pemilihan (Dapil) III Kabupaten Gorontalo A',
             tanggal: 'Senin, 2 Februari 2026', 
@@ -22,6 +24,30 @@ function resesApp() {
         sheets: [], 
 
         initData() {
+            this.generateFromMaster();
+        },
+
+        // --- LOGIKA UTAMA GANTI FORMAT ---
+        onHeaderChange() {
+            const type = this.global.header_type;
+
+            if (type === 'standar') {
+                // Balik ke default 6 halaman
+                this.masterConfig = [
+                    { title: 'PENERIMA TRANSPORT', layout: '8' },
+                    { title: 'KURSI', layout: '8' },
+                    { title: 'SOUND SYSTEM', layout: '6' },
+                    { title: 'MASTER OF CEREMONY (MC)', layout: '3' },
+                    { title: 'MAKANAN BERAT/PRASMANAN', layout: '8' },
+                    { title: 'SNACK RINGAN', layout: '8' },
+                ];
+            } else {
+                // Format B (Tatap Muka) & C (Kunjungan)
+                // OTOMATIS: 1 Halaman, Layout 8
+                this.masterConfig = [
+                    { title: 'DOKUMENTASI KEGIATAN', layout: '8' }
+                ];
+            }
             this.generateFromMaster();
         },
 
@@ -35,28 +61,32 @@ function resesApp() {
             }));
         },
 
-        // --- RUMUS TINGGI DINAMIS (Agar Muat 1 Halaman) ---
         getBoxHeight(layout) {
             const l = parseInt(layout);
-            
-            // Layout 3 (Selalu 110mm)
+            const type = this.global.header_type;
+
             if (l === 3) return '110mm'; 
-            
-            // Layout 6 (Selalu 75mm)
             if (l === 6) return '75mm'; 
             
-            // Layout 8: Cek Tipe Header
-            // Jika Format Tatap Muka (Header Tinggi), kotak harus dipendekkan ke 48mm
-            if (this.global.header_type === 'tatap_muka') return '48mm';
-            
-            // Jika Format Standar, tetap 55mm
+            // Layout 8:
+            // Jika Format B atau C, tinggi kotak DIPENDEKKAN (47mm)
+            // Supaya muat banyak tulisan header tanpa lompat halaman.
+            if (type === 'tatap_muka' || type === 'kunjungan') return '54mm';
+
+            // Jika Format Standar, tinggi normal (55mm)
             return '55mm'; 
         },
 
-        addMasterItem() { this.masterConfig.push({ title: 'JUDUL BARU', layout: '8' }); },
-        removeMasterItem(index) { this.masterConfig.splice(index, 1); },
-        removeSheet(index) { if (confirm("Hapus halaman ini?")) this.sheets.splice(index, 1); },
-        
+        addMasterItem() { 
+            // KUNCI: Tidak bisa tambah halaman di Format B & C
+            if (this.global.header_type !== 'standar') return;
+            this.masterConfig.push({ title: 'JUDUL BARU', layout: '8' }); 
+        },
+
+        removeMasterItem(index) { 
+            this.masterConfig.splice(index, 1); 
+        },
+
         removePhoto(sheetIndex, photoIndex) {
             let newPhotos = [...this.sheets[sheetIndex].photos];
             newPhotos[photoIndex] = null;
