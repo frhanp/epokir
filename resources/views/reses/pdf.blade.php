@@ -71,23 +71,33 @@
             display: block;
         }
 
-        /* Tinggi Kotak */
+        /* --- PENGATURAN TINGGI KOTAK --- */
         .h-55mm {
             height: 55mm;
         }
 
-        /* Standar */
-        .h-47mm {
-            height: 54mm;
-        }
-
-        /* Format B/C (Lebih pendek biar header muat) */
+        /* Standar 8 Kotak */
         .h-75mm {
             height: 75mm;
         }
 
+        /* Standar 6 Kotak */
         .h-110mm {
             height: 110mm;
+        }
+
+        /* Standar 3 Kotak */
+
+        .h-54mm {
+            height: 54mm;
+        }
+
+        /* Khusus Format C (8 Kotak) */
+
+        /* [BARU] Khusus Format B (6 Kotak) agar penuh ke bawah */
+        /* Ubah dari 70mm jadi 73mm */
+        .h-70mm {
+            height: 73mm;
         }
 
         .empty-text {
@@ -114,16 +124,13 @@
                     <p>{{ $global_dapil }}</p>
                     <p>{{ $sheet['tanggal'] ?? '' }}</p>
 
-                    {{-- FORMAT B: TATAP MUKA (FIX DAPIL) --}}
+                    {{-- FORMAT B: TATAP MUKA --}}
                 @elseif($global_header_type == 'tatap_muka')
                     <p>Lampiran Foto</p>
                     <p>{{ $global_masa_sidang }}</p>
-
-                    {{-- TAMBAHAN BARIS DAPIL --}}
                     <p>{{ $global_dapil }}</p>
-
                     <p class="h-bold">{!! nl2br(e($global_deskripsi)) !!}</p>
-                    <p>{{ $sheet['tanggal'] ?? '' }}</p> {{-- Baris 4: Tanggal --}}
+                    <p>{{ $sheet['tanggal'] ?? '' }}</p>
 
                     {{-- FORMAT C: KUNJUNGAN --}}
                 @elseif($global_header_type == 'kunjungan')
@@ -140,6 +147,7 @@
                 @endphp
 
                 @if ($layout == 3)
+                    {{-- Layout 3 (Spesial) --}}
                     <tr>
                         <td colspan="2">
                             <div class="photo-box h-110mm">
@@ -173,12 +181,18 @@
                     </tr>
                 @else
                     @php
-                        // Tentukan tinggi kotak
-                        if ($layout == 6) {
-                            $heightClass = 'h-75mm';
+                        // [PATOKAN BARU: Logic Tinggi Spesifik per Format]
+
+                        if ($global_header_type == 'tatap_muka') {
+                            // Format B (6 kotak) -> Pakai 70mm biar penuh ke bawah
+                            $heightClass = 'h-70mm';
+                        } elseif ($global_header_type == 'kunjungan') {
+                            // Format C (8 kotak) -> Pakai 54mm biar muat 4 baris
+                            $heightClass = 'h-54mm';
+                        } elseif ($layout == 6) {
+                            $heightClass = 'h-75mm'; // Standar A (6 kotak)
                         } else {
-                            // Jika bukan standar (B/C), pakai 47mm
-                            $heightClass = $global_header_type != 'standar' ? 'h-47mm' : 'h-55mm';
+                            $heightClass = 'h-55mm'; // Standar A (8 kotak)
                         }
                     @endphp
 
