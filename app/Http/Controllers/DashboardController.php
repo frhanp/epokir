@@ -21,7 +21,7 @@ class DashboardController extends Controller
             ->groupBy('kategori_usulan')
             ->orderByDesc('total')
             ->get();
-        
+
         $labelKategori = $statsKategori->pluck('kategori_usulan');
         $dataKategori = $statsKategori->pluck('total');
 
@@ -36,15 +36,48 @@ class DashboardController extends Controller
             ->groupBy('anggota_dprd')
             ->orderByDesc('total')
             ->get();
-        
+
         // Cari nilai tertinggi untuk kalkulasi persentase progress bar
-        $maxAleg = $statsAleg->max('total') ?? 1; 
+        $maxAleg = $statsAleg->max('total') ?? 1;
 
         return view('dashboard', compact(
-            'totalUsulan', 'totalOpd', 'totalAleg',
-            'labelKategori', 'dataKategori',
+            'totalUsulan',
+            'totalOpd',
+            'totalAleg',
+            'labelKategori',
+            'dataKategori',
             'statsOpd',
-            'statsAleg', 'maxAleg'
+            'statsAleg',
+            'maxAleg'
         ));
+    }
+
+    // TAMBAHAN BARU: API UNTUK CEK SEBARAN PAGU
+    public function cekPagu(Request $request)
+    {
+        $keyword = $request->keyword;
+
+        if (empty($keyword)) {
+            return response()->json(['data' => [], 'total_global' => 0]);
+        }
+
+        // Cari di Master Plan (Pagu), kelompokkan per Aleg
+        $results = \App\Models\PokirPlan::where('nama_kegiatan', 'LIKE', "%{$keyword}%")
+            ->select(
+                'anggota_dprd',
+                DB::raw('SUM(volume_target) as total_volume'),
+                DB::raw('COUNT(*) as total_paket'),
+                DB::raw('MAX(satuan) as satuan') // Ambil salah satu satuan
+            )
+            ->groupBy('anggota_dprd')
+            ->orderByDesc('total_volume')
+            ->get();
+
+        $totalGlobal = $results->sum('total_volume');
+
+        return response()->json([
+            'data' => $results,
+            'total_global' => $totalGlobal
+        ]);
     }
 }

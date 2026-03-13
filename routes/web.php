@@ -54,7 +54,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('/master/plans/{plan}', [PlanController::class, 'destroy'])->name('plans.destroy');
 
     Route::get('/reses/lampiran', [ResesController::class, 'index'])->name('reses.index');
-Route::post('/reses/cetak', [ResesController::class, 'printPdf'])->name('reses.print');
+    Route::post('/reses/cetak', [ResesController::class, 'printPdf'])->name('reses.print');
+
+
+    Route::get('/api/cek-pagu', [DashboardController::class, 'cekPagu'])->name('api.cek_pagu');
 
 
 
