@@ -16,10 +16,9 @@
                             <x-input-label value="Filter Kategori" />
                             <select name="kategori_usulan" class="mt-1 block w-full text-sm border-gray-300 rounded-md shadow-sm">
                                 <option value="">Semua Kategori</option>
-                                <option value="Bantuan UMKM" {{ request('kategori_usulan') == 'Bantuan UMKM' ? 'selected' : '' }}>Bantuan UMKM</option>
-                                <option value="Bantuan IKM" {{ request('kategori_usulan') == 'Bantuan IKM' ? 'selected' : '' }}>Bantuan IKM</option>
-                                <option value="Pembangunan Jalan" {{ request('kategori_usulan') == 'Pembangunan Jalan' ? 'selected' : '' }}>Pembangunan Jalan</option>
-                                <option value="Bantuan Pertanian" {{ request('kategori_usulan') == 'Bantuan Pertanian' ? 'selected' : '' }}>Bantuan Pertanian</option>
+                                @foreach($kategoris as $kat)
+                                    <option value="{{ $kat }}" {{ request('kategori_usulan') == $kat ? 'selected' : '' }}>{{ $kat }}</option>
+                                @endforeach
                             </select>
                         </div>
 
@@ -27,15 +26,20 @@
                             <x-input-label value="Filter OPD" />
                             <select name="opd_tujuan" class="mt-1 block w-full text-sm border-gray-300 rounded-md shadow-sm">
                                 <option value="">Semua OPD</option>
-                                <option value="Dinas Koperindag" {{ request('opd_tujuan') == 'Dinas Koperindag' ? 'selected' : '' }}>Dinas Koperindag</option>
-                                <option value="Dinas PUPR" {{ request('opd_tujuan') == 'Dinas PUPR' ? 'selected' : '' }}>Dinas PUPR</option>
-                                <option value="Dinas Pertanian" {{ request('opd_tujuan') == 'Dinas Pertanian' ? 'selected' : '' }}>Dinas Pertanian</option>
+                                @foreach($opds as $opd)
+                                    <option value="{{ $opd }}" {{ request('opd_tujuan') == $opd ? 'selected' : '' }}>{{ $opd }}</option>
+                                @endforeach
                             </select>
                         </div>
 
                         <div class="w-full md:w-1/4">
-                            <x-input-label value="Cari Nama Aleg" />
-                            <x-text-input name="anggota_dprd" value="{{ request('anggota_dprd') }}" class="mt-1 block w-full text-sm" placeholder="Nama Aleg..." />
+                            <x-input-label value="Filter Aleg" />
+                            <select name="anggota_dprd" class="mt-1 block w-full text-sm border-gray-300 rounded-md shadow-sm">
+                                <option value="">Semua Aleg</option>
+                                @foreach($alegs as $aleg)
+                                    <option value="{{ $aleg }}" {{ request('anggota_dprd') == $aleg ? 'selected' : '' }}>{{ $aleg }}</option>
+                                @endforeach
+                            </select>
                         </div>
 
                         <div class="w-full md:w-auto pb-0.5">
@@ -43,6 +47,57 @@
                         </div>
                     </div>
                 </form>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div
+                    class="bg-indigo-50 px-6 py-4 border-b border-indigo-100 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-indigo-200 text-indigo-700 rounded-lg">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                </path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">Database Berkas Usulan</h3>
+                            <p class="text-xs text-indigo-700 font-medium">Upload File Excel Usulan (.xlsx)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6">
+                    <form action="{{ route('pokir.import') }}" method="POST" enctype="multipart/form-data"
+                        class="flex flex-col md:flex-row gap-4 items-end">
+                        @csrf
+                        <div class="w-full md:w-1/2">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Pilih File Excel Usulan</label>
+                            <input type="file" name="file_excel" required
+                                class="block w-full text-sm text-gray-500
+                                      file:mr-4 file:py-2.5 file:px-4
+                                      file:rounded-lg file:border-0
+                                      file:text-sm file:font-bold
+                                      file:bg-indigo-100 file:text-indigo-800
+                                      hover:file:bg-indigo-200 transition cursor-pointer border border-gray-300 rounded-lg">
+                        </div>
+                        <button type="submit"
+                            class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold shadow-md transition w-full md:w-auto flex justify-center items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                            </svg>
+                            PROSES IMPORT
+                        </button>
+                    </form>
+                    <p class="text-xs text-gray-400 mt-3 flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Format kolom wajib: No, Judul Permohonan, Alamat, Yang Bermohon, Identitas, Anggota DPRD Pengusul, Ket Berkas, Ket Penerima, Dinas Terkait.
+                    </p>
+                </div>
             </div>
 
             <div class="bg-white shadow sm:rounded-lg overflow-hidden">

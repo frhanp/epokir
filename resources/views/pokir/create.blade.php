@@ -21,12 +21,9 @@
                             <x-input-label for="kategori" value="Kategori Usulan" />
                             <select id="kategori" name="kategori_usulan" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
                                 <option value="">-- Pilih Kategori --</option>
-                                <option value="Bantuan UMKM">Bantuan UMKM</option>
-                                <option value="Bantuan IKM">Bantuan IKM</option>
-                                <option value="Pembangunan Jalan">Pembangunan Jalan</option>
-                                <option value="Bantuan Pertanian">Bantuan Pertanian</option>
-                                <option value="Bantuan Perikanan">Bantuan Perikanan</option>
-                                <option value="Beasiswa Pendidikan">Beasiswa Pendidikan</option>
+                                @foreach($kategoris as $kat)
+                                    <option value="{{ $kat }}">{{ $kat }}</option>
+                                @endforeach
                             </select>
                         </div>
 
@@ -39,11 +36,9 @@
                             <x-input-label for="opd" value="OPD Tujuan" />
                             <select id="opd" name="opd_tujuan" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
                                 <option value="">-- Pilih OPD --</option>
-                                <option value="Dinas Koperindag">Dinas Koperindag</option>
-                                <option value="Dinas PUPR">Dinas PUPR</option>
-                                <option value="Dinas Pertanian">Dinas Pertanian</option>
-                                <option value="Dinas Sosial">Dinas Sosial</option>
-                                <option value="Dinas Pendidikan">Dinas Pendidikan</option>
+                                @foreach($opds as $opd)
+                                    <option value="{{ $opd }}">{{ $opd }}</option>
+                                @endforeach
                             </select>
                         </div>
 
@@ -70,7 +65,12 @@
 
                         <div>
                             <x-input-label for="aleg" value="Anggota DPRD Pengusul" />
-                            <x-text-input id="aleg" name="anggota_dprd" class="mt-1 block w-full" required />
+                            <select id="aleg" name="anggota_dprd" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                                <option value="">-- Pilih Aleg --</option>
+                                @foreach($alegs as $aleg)
+                                    <option value="{{ $aleg }}">{{ $aleg }}</option>
+                                @endforeach
+                            </select>
                         </div>
                         <div>
                             <x-input-label for="berkas" value="Ket Berkas" />

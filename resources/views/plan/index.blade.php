@@ -39,7 +39,7 @@
                     <form action="{{ route('plans.import') }}" method="POST" enctype="multipart/form-data"
                         class="flex flex-col md:flex-row gap-4 items-end">
                         @csrf
-                        <div class="w-full md:w-1/2">
+                        <div class="w-full md:w-1/3">
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Pilih File Excel Pagu</label>
                             <input type="file" name="file_excel" required
                                 class="block w-full text-sm text-gray-500
@@ -48,6 +48,15 @@
                                       file:text-sm file:font-bold
                                       file:bg-yellow-100 file:text-yellow-800
                                       hover:file:bg-yellow-200 transition cursor-pointer border border-gray-300 rounded-lg">
+                        </div>
+                        <div class="w-full md:w-1/4">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tahun Anggaran</label>
+                            <select name="tahun_anggaran" required
+                                class="block w-full text-sm border-gray-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500">
+                                @foreach ($yearsRange as $yr)
+                                    <option value="{{ $yr }}" {{ $yr == $selectedTahun ? 'selected' : '' }}>{{ $yr }}</option>
+                                @endforeach
+                            </select>
                         </div>
                         <button type="submit"
                             class="px-6 py-2.5 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 font-bold shadow-md transition w-full md:w-auto flex justify-center items-center gap-2">
@@ -69,11 +78,18 @@
             </div>
 
             <div class="space-y-4">
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-between flex-wrap gap-4">
                     <h3 class="text-lg font-bold text-gray-800 border-l-4 border-yellow-500 pl-3">Daftar Pagu Tersedia
                         (Per Fraksi/Aleg)</h3>
-                    <span class="text-xs font-medium bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">Tahun
-                        Anggaran 2026</span>
+                    <div class="flex items-center gap-2">
+                        <label for="filter-tahun" class="text-sm font-semibold text-gray-700">Tahun Anggaran:</label>
+                        <select id="filter-tahun" onchange="window.location.href = '{{ route('plans.index') }}?tahun=' + this.value"
+                            class="text-sm font-bold bg-yellow-100 text-yellow-800 border-yellow-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500 px-3 py-1">
+                            @foreach ($yearsRange as $yr)
+                                <option value="{{ $yr }}" {{ $yr == $selectedTahun ? 'selected' : '' }}>{{ $yr }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
 
                 @forelse($groupedPlans as $alegName => $plans)
@@ -116,8 +132,9 @@
                                 <form action="{{ route('plans.destroyAleg') }}" method="POST">
                                     @csrf @method('DELETE')
                                     <input type="hidden" name="anggota_dprd" value="{{ $alegName }}">
+                                    <input type="hidden" name="tahun_anggaran" value="{{ $selectedTahun }}">
                                     <button type="button"
-                                        onclick="confirmDelete(this, 'Hapus SEMUA data pagu milik {{ $alegName }}?')"
+                                        onclick="confirmDelete(this, 'Hapus SEMUA data pagu milik {{ $alegName }} untuk tahun {{ $selectedTahun }}?')"
                                         class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition"
                                         title="Hapus Semua">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -308,6 +325,15 @@
                     <form action="{{ route('plans.store') }}" method="POST">
                         @csrf
                         <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">Tahun Anggaran</label>
+                                <select name="tahun_anggaran" required
+                                    class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-yellow-500 focus:border-yellow-500">
+                                    @foreach ($yearsRange as $yr)
+                                        <option value="{{ $yr }}" {{ $yr == $selectedTahun ? 'selected' : '' }}>{{ $yr }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-1">Nama Anggota DPRD /
                                     Fraksi</label>

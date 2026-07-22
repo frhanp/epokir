@@ -35,7 +35,7 @@
                                     required>
                                     <option value="">-- Pilih Kategori --</option>
                                     @foreach ($kategoris as $kat)
-                                        <option value="{{ $kat->nama_kategori }}">{{ $kat->nama_kategori }}</option>
+                                        <option value="{{ $kat }}">{{ $kat }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -48,7 +48,7 @@
                                 required>
                                 <option value="">-- Pilih OPD --</option>
                                 @foreach ($opds as $opd)
-                                    <option value="{{ $opd->nama_dinas }}">{{ $opd->nama_dinas }}</option>
+                                    <option value="{{ $opd }}">{{ $opd }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -60,7 +60,7 @@
                                 required>
                                 <option value="">-- Pilih Aleg --</option>
                                 @foreach ($alegs as $aleg)
-                                    <option value="{{ $aleg->nama }}">{{ $aleg->nama }}</option>
+                                    <option value="{{ $aleg }}">{{ $aleg }}</option>
                                 @endforeach
                             </select>
                         </div>

@@ -7,9 +7,8 @@ use App\Models\Pokir;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use App\Models\Aleg;
-use App\Models\Opd;
-use App\Models\Kategori;
+use App\Models\PokirPlan;
+use Illuminate\Support\Facades\DB;
 
 class PokirController extends Controller
 { // Fungsi bantuan agar filter bisa dipakai di Index, Print, dan Excel
@@ -35,15 +34,21 @@ class PokirController extends Controller
     {
         // Gunakan pagination agar halaman tidak berat
         $pokirs = $this->getFilteredPokir($request)->paginate(10);
-        return view('pokir.index', compact('pokirs'));
+        
+        // Ambil data unik untuk filter
+        $alegs = PokirPlan::distinct()->orderBy('anggota_dprd')->pluck('anggota_dprd')->toArray();
+        $opds = PokirPlan::distinct()->orderBy('opd_tujuan')->pluck('opd_tujuan')->toArray();
+        $kategoris = Pokir::distinct()->orderBy('kategori_usulan')->pluck('kategori_usulan')->toArray();
+
+        return view('pokir.index', compact('pokirs', 'alegs', 'opds', 'kategoris'));
     }
 
     // HALAMAN INPUT (FORM)
     public function create()
     {
-        $alegs = Aleg::all();
-        $opds = Opd::all();
-        $kategoris = Kategori::all();
+        $alegs = PokirPlan::distinct()->orderBy('anggota_dprd')->pluck('anggota_dprd')->toArray();
+        $opds = PokirPlan::distinct()->orderBy('opd_tujuan')->pluck('opd_tujuan')->toArray();
+        $kategoris = Pokir::distinct()->orderBy('kategori_usulan')->pluck('kategori_usulan')->toArray();
 
         // Sesuaikan nama view-nya (pokir.create atau pokir.create-bulk)
         return view('pokir.create', compact('alegs', 'opds', 'kategoris'));
@@ -80,9 +85,9 @@ class PokirController extends Controller
 
     public function createBulk()
     {
-        $alegs = Aleg::all();
-        $opds = Opd::all();
-        $kategoris = Kategori::all();
+        $alegs = PokirPlan::distinct()->orderBy('anggota_dprd')->pluck('anggota_dprd')->toArray();
+        $opds = PokirPlan::distinct()->orderBy('opd_tujuan')->pluck('opd_tujuan')->toArray();
+        $kategoris = Pokir::distinct()->orderBy('kategori_usulan')->pluck('kategori_usulan')->toArray();
 
         return view('pokir.create-bulk', compact('alegs', 'opds', 'kategoris'));
     }
@@ -177,5 +182,59 @@ class PokirController extends Controller
         $writer = new Xlsx($spreadsheet);
         $writer->save('php://output');
         exit;
+    }
+    // IMPORT EXCEL USULAN
+    public function importExcel(Request $request)
+    {
+        $request->validate([
+            'file_excel' => 'required|mimes:xlsx,xls'
+        ]);
+
+        try {
+            $file = $request->file('file_excel');
+            $spreadsheet = IOFactory::load($file->getPathname());
+            $sheet = $spreadsheet->getActiveSheet();
+            $rows = $sheet->toArray();
+
+            DB::beginTransaction();
+
+            $countInput = 0;
+
+            foreach ($rows as $index => $row) {
+                // Filter baris (kolom A harus numerik)
+                if (empty($row[0]) || !is_numeric($row[0])) {
+                    continue;
+                }
+
+                // Kolom B (index 1): JUDUL PERMOHONAN -> kategori_usulan
+                // Kolom C (index 2): ALAMAT -> alamat
+                // Kolom D (index 3): YANG BERMOHON -> nama_pemohon
+                // Kolom E (index 4): IDENTITAS -> identitas_pemohon
+                // Kolom F (index 5): ANGGOTA DPRD PENGUSUL -> anggota_dprd
+                // Kolom G (index 6): KET BERKAS -> status_berkas
+                // Kolom H (index 7): KET PENERIMA -> operator_penerima
+                // Kolom I (index 8): DINAS TERKAIT -> opd_tujuan
+
+                Pokir::create([
+                    'kategori_usulan'   => $row[1] ?? 'Umum',
+                    'alamat'            => $row[2] ?? '-',
+                    'nama_pemohon'      => $row[3] ?? 'Anonim',
+                    'identitas_pemohon' => $row[4] ?? null,
+                    'anggota_dprd'      => $row[5] ?? 'Umum',
+                    'status_berkas'     => $row[6] ?? '1 Proposal',
+                    'operator_penerima' => $row[7] ?? null,
+                    'opd_tujuan'        => $row[8] ?? 'Dinas Terkait',
+                    'status_sistem'     => 'Usulan Baru',
+                ]);
+
+                $countInput++;
+            }
+
+            DB::commit();
+            return redirect()->route('pokir.index')->with('success', "Sukses! $countInput berkas usulan berhasil diimport.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('pokir.index')->with('error', 'Gagal: ' . $e->getMessage());
+        }
     }
 }

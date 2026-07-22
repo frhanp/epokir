@@ -11,20 +11,30 @@ use Illuminate\Support\Facades\DB;
 class PlanController extends Controller
 {
     // Halaman List Rencana Kerja
-    public function index()
+    public function index(Request $request)
     {
+        $selectedTahun = $request->query('tahun', 2026);
+
         // Ambil semua data, urutkan per Aleg lalu per OPD, kemudian GROUP BY Aleg
-        $groupedPlans = PokirPlan::orderBy('anggota_dprd')
+        $groupedPlans = PokirPlan::where('tahun_anggaran', $selectedTahun)
+            ->orderBy('anggota_dprd')
             ->orderBy('opd_tujuan')
             ->get()
             ->groupBy('anggota_dprd');
 
-        return view('plan.index', compact('groupedPlans'));
+        // Buat daftar pilihan tahun (misal: 2 tahun ke belakang dan 4 tahun ke depan)
+        $currentYear = date('Y');
+        $yearsRange = range($currentYear - 2, $currentYear + 4);
+
+        return view('plan.index', compact('groupedPlans', 'selectedTahun', 'yearsRange'));
     }
 
     public function import(Request $request)
     {
-        $request->validate(['file_excel' => 'required|mimes:xlsx,xls']);
+        $request->validate([
+            'file_excel' => 'required|mimes:xlsx,xls',
+            'tahun_anggaran' => 'required|numeric'
+        ]);
 
         try {
             $file = $request->file('file_excel');
@@ -76,7 +86,7 @@ class PlanController extends Controller
                     'opd_tujuan'    => $lastOpd ?? 'Dinas Terkait',
                     'anggota_dprd'  => $lastAleg ?? 'Umum',
 
-                    'tahun_anggaran' => 2026
+                    'tahun_anggaran' => $request->tahun_anggaran
                 ]);
 
                 $countInput++;
@@ -145,10 +155,17 @@ class PlanController extends Controller
 
     public function destroyByAleg(Request $request)
     {
-        // Hapus semua data berdasarkan Nama Aleg
-        PokirPlan::where('anggota_dprd', $request->anggota_dprd)->delete();
+        $request->validate([
+            'anggota_dprd' => 'required|string',
+            'tahun_anggaran' => 'required|numeric'
+        ]);
 
-        return redirect()->back()->with('success', 'Seluruh pagu milik ' . $request->anggota_dprd . ' berhasil dihapus.');
+        // Hapus semua data berdasarkan Nama Aleg dan Tahun
+        PokirPlan::where('anggota_dprd', $request->anggota_dprd)
+            ->where('tahun_anggaran', $request->tahun_anggaran)
+            ->delete();
+
+        return redirect()->back()->with('success', 'Seluruh pagu milik ' . $request->anggota_dprd . ' tahun ' . $request->tahun_anggaran . ' berhasil dihapus.');
     }
 
     public function store(Request $request)
@@ -160,6 +177,7 @@ class PlanController extends Controller
             'volume_target' => 'required|numeric',
             'satuan'        => 'required|string',
             'harga_satuan'  => 'required', // String Rp...
+            'tahun_anggaran' => 'required|numeric',
         ]);
 
         PokirPlan::create([
@@ -170,7 +188,7 @@ class PlanController extends Controller
             'satuan'         => $request->satuan,
             'harga_satuan'   => $this->cleanNumber($request->harga_satuan),
             'pagu_total'     => $request->volume_target * $this->cleanNumber($request->harga_satuan),
-            'tahun_anggaran' => 2026,
+            'tahun_anggaran' => $request->tahun_anggaran,
         ]);
 
         return redirect()->back()->with('success', 'Data rencana kerja berhasil ditambahkan manual.');
