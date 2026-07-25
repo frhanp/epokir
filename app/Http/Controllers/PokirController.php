@@ -142,8 +142,8 @@ class PokirController extends Controller
                 // Kolom H (index 7): KET PENERIMA -> operator_penerima
                 // Kolom I (index 8): DINAS TERKAIT -> opd_tujuan
 
-                $alegInput = trim($row[5] ?? 'Umum');
-                $opdInput = trim($row[8] ?? 'Dinas Terkait');
+                $alegInput = trim(preg_replace('/\s+/', ' ', $row[5] ?? 'Umum'));
+                $opdInput = trim(preg_replace('/\s+/', ' ', $row[8] ?? 'Dinas Terkait'));
 
                 // Cari rencana kerja (Master Pagu) yang sesuai
                 $plan = PokirPlan::where('tahun_anggaran', $request->tahun_anggaran)

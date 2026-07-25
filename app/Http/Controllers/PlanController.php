@@ -85,9 +85,9 @@ class PlanController extends Controller
                     'harga_satuan'  => $this->cleanNumber($row[4]),
                     'pagu_total'    => $this->cleanNumber($row[5]),
 
-                    // PENTING: Gunakan variable pengingat, bukan $row[6] mentah
-                    'opd_tujuan'    => $lastOpd ?? 'Dinas Terkait',
-                    'anggota_dprd'  => $lastAleg ?? 'Umum',
+                    // PENTING: Gunakan variable pengingat, bukan $row[6] mentah, dan bersihkan whitespace/newline
+                    'opd_tujuan'    => trim(preg_replace('/\s+/', ' ', $lastOpd ?? 'Dinas Terkait')),
+                    'anggota_dprd'  => trim(preg_replace('/\s+/', ' ', $lastAleg ?? 'Umum')),
 
                     'tahun_anggaran' => $request->tahun_anggaran,
                     'tipe_apbd'      => $request->tipe_apbd
