@@ -198,4 +198,251 @@ class PokirController extends Controller
             return redirect()->route('pokir.index')->with('error', 'Gagal: ' . $e->getMessage());
         }
     }
+
+    // HALAMAN MATRIKS REALISASI (SUMMARY & GAP ANALYSIS)
+    public function matrix(Request $request)
+    {
+        // 1. Ambil data unik untuk pilihan filter
+        $alegs = PokirPlan::distinct()->orderBy('anggota_dprd')->pluck('anggota_dprd')->toArray();
+        if (empty($alegs)) {
+            // fallback jika master plan kosong, ambil dari pokirs
+            $alegs = Pokir::distinct()->orderBy('anggota_dprd')->pluck('anggota_dprd')->toArray();
+        }
+
+        $opds = PokirPlan::distinct()->orderBy('opd_tujuan')->pluck('opd_tujuan')->toArray();
+        if (empty($opds)) {
+            $opds = Pokir::distinct()->orderBy('opd_tujuan')->pluck('opd_tujuan')->toArray();
+        }
+
+        // Default values
+        $selectedAleg = $request->query('anggota_dprd', $alegs[0] ?? '');
+        $selectedTahun = $request->query('tahun_anggaran', 2026);
+        $selectedTipe = $request->query('tipe_apbd', 'Induk');
+
+        // 2. Query Pagu Target (Master Pagu)
+        $plansQuery = PokirPlan::where('tahun_anggaran', $selectedTahun)
+            ->where('tipe_apbd', $selectedTipe)
+            ->where('anggota_dprd', $selectedAleg);
+
+        if ($request->filled('opd_tujuan')) {
+            $plansQuery->where('opd_tujuan', $request->opd_tujuan);
+        }
+
+        if ($request->filled('nama_kegiatan')) {
+            $plansQuery->where('nama_kegiatan', 'like', '%' . $request->nama_kegiatan . '%');
+        }
+
+        $plans = $plansQuery->with(['pokirs'])->get();
+
+        // 3. Query Usulan Tanpa Pagu (Orphan / Usulan Baru)
+        $orphanQuery = Pokir::where('tahun_anggaran', $selectedTahun)
+            ->where('tipe_apbd', $selectedTipe)
+            ->where('anggota_dprd', $selectedAleg)
+            ->whereNull('pokir_plan_id');
+
+        if ($request->filled('opd_tujuan')) {
+            $orphanQuery->where('opd_tujuan', $request->opd_tujuan);
+        }
+
+        $orphans = $orphanQuery->get();
+
+        // Pilihan tahun
+        $currentYear = date('Y');
+        $yearsRange = range($currentYear - 2, $currentYear + 4);
+
+        return view('pokir.matrix', compact(
+            'alegs',
+            'opds',
+            'selectedAleg',
+            'selectedTahun',
+            'selectedTipe',
+            'plans',
+            'orphans',
+            'yearsRange'
+        ));
+    }
+
+    // EXPORT MATRIKS REALISASI KE EXCEL
+    public function exportMatrixExcel(Request $request)
+    {
+        // 1. Ambil data unik untuk filter
+        $alegs = PokirPlan::distinct()->orderBy('anggota_dprd')->pluck('anggota_dprd')->toArray();
+        if (empty($alegs)) {
+            $alegs = Pokir::distinct()->orderBy('anggota_dprd')->pluck('anggota_dprd')->toArray();
+        }
+
+        $selectedAleg = $request->query('anggota_dprd', $alegs[0] ?? '');
+        $selectedTahun = $request->query('tahun_anggaran', 2026);
+        $selectedTipe = $request->query('tipe_apbd', 'Induk');
+
+        // Query Pagu Target (Master Pagu)
+        $plansQuery = PokirPlan::where('tahun_anggaran', $selectedTahun)
+            ->where('tipe_apbd', $selectedTipe)
+            ->where('anggota_dprd', $selectedAleg);
+
+        if ($request->filled('opd_tujuan')) {
+            $plansQuery->where('opd_tujuan', $request->opd_tujuan);
+        }
+
+        if ($request->filled('nama_kegiatan')) {
+            $plansQuery->where('nama_kegiatan', 'like', '%' . $request->nama_kegiatan . '%');
+        }
+
+        $plans = $plansQuery->with(['pokirs'])->get();
+
+        // Query Usulan Tanpa Pagu (Orphan / Usulan Baru)
+        $orphanQuery = Pokir::where('tahun_anggaran', $selectedTahun)
+            ->where('tipe_apbd', $selectedTipe)
+            ->where('anggota_dprd', $selectedAleg)
+            ->whereNull('pokir_plan_id');
+
+        if ($request->filled('opd_tujuan')) {
+            $orphanQuery->where('opd_tujuan', $request->opd_tujuan);
+        }
+
+        $orphans = $orphanQuery->get();
+
+        // 2. Load file Excel Template
+        $templatePath = storage_path('app/contoh_matriks_aleg.xlsx');
+        if (file_exists($templatePath)) {
+            $spreadsheet = IOFactory::load($templatePath);
+        } else {
+            $spreadsheet = new Spreadsheet();
+        }
+        
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Matriks Realisasi');
+
+        // Hapus isi data bawaan template dari baris 7 kebawah
+        $highestRow = $sheet->getHighestRow();
+        if ($highestRow >= 7) {
+            $sheet->removeRow(7, $highestRow - 6);
+        }
+
+        $currentRow = 7;
+
+        // Loop Plans
+        foreach ($plans as $index => $plan) {
+            // Plan Title Block
+            $sheet->setCellValue('B' . $currentRow, 'USULAN ' . strtoupper($plan->nama_kegiatan) . ' ALEG PENGUSUL An : ' . $selectedAleg);
+            $sheet->getStyle('B' . $currentRow)->getFont()->setBold(true)->setName('Calibri')->setSize(11);
+            $sheet->mergeCells('B' . $currentRow . ':F' . $currentRow);
+
+            $currentRow++;
+
+            // Total Usulan Row
+            $linkedPokirs = $plan->pokirs;
+            $sheet->setCellValue('B' . $currentRow, 'TOTAL ' . $linkedPokirs->count() . ' USULAN');
+            $sheet->getStyle('B' . $currentRow)->getFont()->setBold(true)->setName('Calibri')->setSize(11);
+            $sheet->mergeCells('B' . $currentRow . ':F' . $currentRow);
+
+            $currentRow++;
+
+            // Table Header Row
+            $sheet->setCellValue('B' . $currentRow, 'No');
+            $sheet->setCellValue('C' . $currentRow, 'Jenis Usulan');
+            $sheet->setCellValue('D' . $currentRow, 'Nama Pengusul');
+            $sheet->setCellValue('E' . $currentRow, 'Alamat');
+            $sheet->setCellValue('F' . $currentRow, 'Ket');
+
+            $headerRange = 'B' . $currentRow . ':F' . $currentRow;
+            $sheet->getStyle($headerRange)->getFont()->setBold(true)->setName('Calibri')->setSize(11);
+            $sheet->getStyle($headerRange)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFFFC000'); // Orange/Gold
+            $sheet->getStyle($headerRange)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+            $currentRow++;
+
+            // Data Rows
+            if ($linkedPokirs->count() > 0) {
+                $dataStartRow = $currentRow;
+                foreach ($linkedPokirs as $pIdx => $pokir) {
+                    $namaPengusul = $pokir->nama_pemohon . ($pokir->identitas_pemohon ? ' (' . $pokir->identitas_pemohon . ')' : '');
+
+                    $sheet->setCellValue('B' . $currentRow, $pIdx + 1);
+                    $sheet->setCellValue('C' . $currentRow, $pokir->kategori_usulan);
+                    $sheet->setCellValue('D' . $currentRow, $namaPengusul);
+                    $sheet->setCellValue('E' . $currentRow, $pokir->alamat);
+                    $sheet->setCellValue('F' . $currentRow, $pokir->status_berkas ?? 'Ada');
+
+                    $currentRow++;
+                }
+                $dataEndRow = $currentRow - 1;
+                $sheet->getStyle('B' . $dataStartRow . ':F' . $dataEndRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+            } else {
+                // Tulis satu baris info gap / kosong
+                $sheet->setCellValue('B' . $currentRow, '1');
+                $sheet->setCellValue('C' . $currentRow, 'Belum ada usulan warga terakomodir');
+                $sheet->setCellValue('D' . $currentRow, '-');
+                $sheet->setCellValue('E' . $currentRow, '-');
+                $sheet->setCellValue('F' . $currentRow, 'Kekurangan ' . $plan->volume_target . ' berkas');
+
+                $sheet->getStyle('B' . $currentRow . ':F' . $currentRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+                $sheet->getStyle('F' . $currentRow)->getFont()->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color(\PhpOffice\PhpSpreadsheet\Style\Color::COLOR_RED))->setBold(true);
+
+                $currentRow++;
+            }
+
+            // Tambahkan spacing kosong di antara pagu
+            $currentRow += 2;
+        }
+
+        // Tulis Usulan Tanpa Pagu (jika ada)
+        if ($orphans->count() > 0) {
+            $sheet->setCellValue('B' . $currentRow, 'USULAN TANPA PAGU (ORPHAN PROPOSALS) ALEG PENGUSUL An : ' . $selectedAleg);
+            $sheet->getStyle('B' . $currentRow)->getFont()->setBold(true)->setName('Calibri')->setSize(11);
+            $sheet->mergeCells('B' . $currentRow . ':F' . $currentRow);
+
+            $currentRow++;
+
+            $sheet->setCellValue('B' . $currentRow, 'TOTAL ' . $orphans->count() . ' USULAN');
+            $sheet->getStyle('B' . $currentRow)->getFont()->setBold(true)->setName('Calibri')->setSize(11);
+            $sheet->mergeCells('B' . $currentRow . ':F' . $currentRow);
+
+            $currentRow++;
+
+            $sheet->setCellValue('B' . $currentRow, 'No');
+            $sheet->setCellValue('C' . $currentRow, 'OPD & Jenis Usulan');
+            $sheet->setCellValue('D' . $currentRow, 'Nama Pengusul');
+            $sheet->setCellValue('E' . $currentRow, 'Alamat');
+            $sheet->setCellValue('F' . $currentRow, 'Ket');
+
+            $headerRange = 'B' . $currentRow . ':F' . $currentRow;
+            $sheet->getStyle($headerRange)->getFont()->setBold(true)->setName('Calibri')->setSize(11);
+            $sheet->getStyle($headerRange)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFFEE2E2'); // Light Red
+            $sheet->getStyle($headerRange)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+            $currentRow++;
+
+            $dataStartRow = $currentRow;
+            foreach ($orphans as $oIdx => $orphan) {
+                $namaPengusul = $orphan->nama_pemohon . ($orphan->identitas_pemohon ? ' (' . $orphan->identitas_pemohon . ')' : '');
+                $jenisUsulan = '[' . $orphan->opd_tujuan . '] ' . $orphan->kategori_usulan;
+
+                $sheet->setCellValue('B' . $currentRow, $oIdx + 1);
+                $sheet->setCellValue('C' . $currentRow, $jenisUsulan);
+                $sheet->setCellValue('D' . $currentRow, $namaPengusul);
+                $sheet->setCellValue('E' . $currentRow, $orphan->alamat);
+                $sheet->setCellValue('F' . $currentRow, $orphan->status_berkas ?? 'Usulan Baru');
+
+                $currentRow++;
+            }
+            $dataEndRow = $currentRow - 1;
+            $sheet->getStyle('B' . $dataStartRow . ':F' . $dataEndRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        }
+
+        // Autofilter column widths untuk kolom B sampai F
+        foreach (range('B', 'F') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $fileName = 'Matriks_Realisasi_' . str_replace(' ', '_', $selectedAleg) . '_' . $selectedTahun . '_' . $selectedTipe . '.xlsx';
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $fileName . '"');
+        header('Cache-Control: max-age=0');
+
+        $writer = new Xlsx($spreadsheet);
+        $writer->save('php://output');
+        exit;
+    }
 }

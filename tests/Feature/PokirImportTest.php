@@ -137,4 +137,60 @@ class PokirImportTest extends TestCase
 
         @unlink($filePath);
     }
+
+    public function test_user_can_access_matrix_page_with_filters()
+    {
+        $user = User::factory()->create();
+
+        $plan = PokirPlan::create([
+            'anggota_dprd' => 'ALEG TEST MATRIX',
+            'opd_tujuan' => 'Dinas Pekerjaan Umum',
+            'nama_kegiatan' => 'Pembangunan Jalan Desa',
+            'satuan' => 'Meter',
+            'harga_satuan' => 500000,
+            'volume_target' => 10,
+            'pagu_total' => 5000000,
+            'tahun_anggaran' => 2027,
+            'tipe_apbd' => 'Induk'
+        ]);
+
+        $response = $this->actingAs($user)->get(route('pokir.matrix', [
+            'anggota_dprd' => 'ALEG TEST MATRIX',
+            'tahun_anggaran' => 2027,
+            'tipe_apbd' => 'Induk'
+        ]));
+
+        $response->assertStatus(200);
+        $response->assertSee('Matriks Realisasi');
+        $response->assertSee('Analisis Gap Pokir');
+        $response->assertSee('ALEG TEST MATRIX');
+        $response->assertSee('Pembangunan Jalan Desa');
+    }
+
+    public function test_user_can_export_matrix_to_excel()
+    {
+        $user = User::factory()->create();
+
+        PokirPlan::create([
+            'anggota_dprd' => 'ALEG EXPORT EXCEL',
+            'opd_tujuan' => 'Dinas Kesehatan',
+            'nama_kegiatan' => 'Pengadaan Ambulans Desa',
+            'satuan' => 'Unit',
+            'harga_satuan' => 300000000,
+            'volume_target' => 1,
+            'pagu_total' => 300000000,
+            'tahun_anggaran' => 2026,
+            'tipe_apbd' => 'Induk'
+        ]);
+
+        $response = $this->actingAs($user)->get(route('pokir.matrix.export', [
+            'anggota_dprd' => 'ALEG EXPORT EXCEL',
+            'tahun_anggaran' => 2026,
+            'tipe_apbd' => 'Induk'
+        ]));
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        $response->assertHeader('Content-Disposition', 'attachment;filename="Matriks_Realisasi_ALEG_EXPORT_EXCEL_2026_Induk.xlsx"');
+    }
 }

@@ -24,6 +24,8 @@ Route::middleware('auth')->group(function () {
 
     // List Data & Fitur Pendukung
     Route::get('/pokir', [PokirController::class, 'index'])->name('pokir.index');
+    Route::get('/pokir/matrix', [PokirController::class, 'matrix'])->name('pokir.matrix');
+    Route::get('/pokir/matrix/export', [PokirController::class, 'exportMatrixExcel'])->name('pokir.matrix.export');
     Route::get('/pokir/export', [PokirController::class, 'exportExcel'])->name('pokir.export');
     Route::get('/pokir/print', [PokirController::class, 'print'])->name('pokir.print');
 
