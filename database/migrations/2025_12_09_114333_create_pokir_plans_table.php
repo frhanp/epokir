@@ -20,7 +20,7 @@ return new class extends Migration
             $table->year('tahun_anggaran')->default(2026);
             
             // Detail Program
-            $table->string('nama_kegiatan'); // Nama Program (misal: Bantuan Beasiswa)
+            $table->text('nama_kegiatan'); // Nama Program (misal: Bantuan Beasiswa)
             $table->string('satuan')->default('Paket');
             $table->decimal('harga_satuan', 15, 2)->default(0);
             
