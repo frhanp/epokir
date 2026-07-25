@@ -25,6 +25,12 @@ class PokirController extends Controller
         if ($request->filled('anggota_dprd')) {
             $query->where('anggota_dprd', 'like', '%' . $request->anggota_dprd . '%');
         }
+        if ($request->filled('tahun_anggaran')) {
+            $query->where('tahun_anggaran', $request->tahun_anggaran);
+        }
+        if ($request->filled('tipe_apbd')) {
+            $query->where('tipe_apbd', $request->tipe_apbd);
+        }
 
         return $query;
     }
@@ -40,96 +46,13 @@ class PokirController extends Controller
         $opds = PokirPlan::distinct()->orderBy('opd_tujuan')->pluck('opd_tujuan')->toArray();
         $kategoris = Pokir::distinct()->orderBy('kategori_usulan')->pluck('kategori_usulan')->toArray();
 
-        return view('pokir.index', compact('pokirs', 'alegs', 'opds', 'kategoris'));
-    }
+        $currentYear = date('Y');
+        $yearsRange = range($currentYear - 2, $currentYear + 4);
 
-    // HALAMAN INPUT (FORM)
-    public function create()
-    {
-        $alegs = PokirPlan::distinct()->orderBy('anggota_dprd')->pluck('anggota_dprd')->toArray();
-        $opds = PokirPlan::distinct()->orderBy('opd_tujuan')->pluck('opd_tujuan')->toArray();
-        $kategoris = Pokir::distinct()->orderBy('kategori_usulan')->pluck('kategori_usulan')->toArray();
-
-        // Sesuaikan nama view-nya (pokir.create atau pokir.create-bulk)
-        return view('pokir.create', compact('alegs', 'opds', 'kategoris'));
-    }
-
-    // PROSES SIMPAN
-    public function store(Request $request)
-    {
-        $request->validate([
-            'kategori_usulan' => 'required',
-            'opd_tujuan' => 'required',
-            'alamat' => 'required',
-            'nama_pemohon' => 'required',
-            'anggota_dprd' => 'required',
-        ]);
-
-        Pokir::create([
-            'kategori_usulan' => $request->kategori_usulan,
-            'spesifikasi' => $request->spesifikasi,
-            'opd_tujuan' => $request->opd_tujuan,
-            'alamat' => $request->alamat,
-            'nama_pemohon' => $request->nama_pemohon,
-            'identitas_pemohon' => $request->identitas_pemohon,
-            'anggota_dprd' => $request->anggota_dprd,
-            'status_berkas' => $request->status_berkas,
-            'operator_penerima' => $request->operator_penerima,
-        ]);
-
-        // Redirect ke Index agar bisa lihat hasil input
-        return redirect()->route('pokir.index')->with('success', 'Data berhasil disimpan.');
+        return view('pokir.index', compact('pokirs', 'alegs', 'opds', 'kategoris', 'yearsRange'));
     }
 
 
-
-    public function createBulk()
-    {
-        $alegs = PokirPlan::distinct()->orderBy('anggota_dprd')->pluck('anggota_dprd')->toArray();
-        $opds = PokirPlan::distinct()->orderBy('opd_tujuan')->pluck('opd_tujuan')->toArray();
-        $kategoris = Pokir::distinct()->orderBy('kategori_usulan')->pluck('kategori_usulan')->toArray();
-
-        return view('pokir.create-bulk', compact('alegs', 'opds', 'kategoris'));
-    }
-
-    // 2. SIMPAN DATA MASSAL
-    public function storeBulk(Request $request)
-    {
-        // Validasi Header
-        $request->validate([
-            'kategori_usulan' => 'required',
-            'opd_tujuan' => 'required',
-            'anggota_dprd' => 'required',
-
-            // Validasi Array Detail
-            'details' => 'required|array|min:1',
-            'details.*.nama_pemohon' => 'required',
-            'details.*.alamat' => 'required',
-        ]);
-
-        $dataHeader = [
-            'kategori_usulan' => $request->kategori_usulan,
-            'opd_tujuan' => $request->opd_tujuan,
-            'anggota_dprd' => $request->anggota_dprd,
-            'operator_penerima' => $request->operator_penerima,
-        ];
-
-        // Looping simpan per baris
-        foreach ($request->details as $row) {
-            // Cek jika baris kosong (nama pemohon tidak diisi), skip saja
-            if (empty($row['nama_pemohon'])) continue;
-
-            Pokir::create(array_merge($dataHeader, [
-                'spesifikasi' => $row['spesifikasi'] ?? null,
-                'nama_pemohon' => $row['nama_pemohon'],
-                'identitas_pemohon' => $row['identitas_pemohon'] ?? null,
-                'alamat' => $row['alamat'],
-                'status_berkas' => !empty($row['status_berkas']) ? $row['status_berkas'] : '1 Proposal',
-            ]));
-        }
-
-        return redirect()->route('pokir.index')->with('success', 'Input massal berhasil disimpan!');
-    }
 
     // CETAK (Ikut Filter)
     public function print(Request $request)
@@ -187,7 +110,11 @@ class PokirController extends Controller
     public function importExcel(Request $request)
     {
         $request->validate([
-            'file_excel' => 'required|mimes:xlsx,xls'
+            'file_excel'          => 'required|mimes:xlsx,xls',
+            'tanggal_penerimaan'  => 'required|date',
+            'tahun_anggaran'      => 'required|numeric',
+            'tipe_apbd'           => 'required|string|in:Induk,Perubahan',
+            'keterangan_upload'   => 'nullable|string',
         ]);
 
         try {
@@ -215,23 +142,57 @@ class PokirController extends Controller
                 // Kolom H (index 7): KET PENERIMA -> operator_penerima
                 // Kolom I (index 8): DINAS TERKAIT -> opd_tujuan
 
+                $alegInput = trim($row[5] ?? 'Umum');
+                $opdInput = trim($row[8] ?? 'Dinas Terkait');
+
+                // Cari rencana kerja (Master Pagu) yang sesuai
+                $plan = PokirPlan::where('tahun_anggaran', $request->tahun_anggaran)
+                    ->where('tipe_apbd', $request->tipe_apbd)
+                    ->where('anggota_dprd', $alegInput)
+                    ->where('opd_tujuan', $opdInput)
+                    ->first();
+
+                $planId = null;
+                $statusSistem = 'Usulan Baru';
+
+                if ($plan) {
+                    $planId = $plan->id;
+                    // Hitung jumlah yang sudah 'Terakomodir' pada rencana kerja ini secara dinamis
+                    $terpakai = Pokir::where('pokir_plan_id', $plan->id)
+                        ->where('status_sistem', 'Terakomodir')
+                        ->count();
+
+                    if ($terpakai < $plan->volume_target) {
+                        $statusSistem = 'Terakomodir';
+                    } else {
+                        $statusSistem = 'Cadangan';
+                    }
+                }
+
                 Pokir::create([
-                    'kategori_usulan'   => $row[1] ?? 'Umum',
-                    'alamat'            => $row[2] ?? '-',
-                    'nama_pemohon'      => $row[3] ?? 'Anonim',
-                    'identitas_pemohon' => $row[4] ?? null,
-                    'anggota_dprd'      => $row[5] ?? 'Umum',
-                    'status_berkas'     => $row[6] ?? '1 Proposal',
-                    'operator_penerima' => $row[7] ?? null,
-                    'opd_tujuan'        => $row[8] ?? 'Dinas Terkait',
-                    'status_sistem'     => 'Usulan Baru',
+                    'kategori_usulan'    => $row[1] ?? 'Umum',
+                    'alamat'             => $row[2] ?? '-',
+                    'nama_pemohon'       => $row[3] ?? 'Anonim',
+                    'identitas_pemohon'  => $row[4] ?? null,
+                    'anggota_dprd'       => $alegInput,
+                    'status_berkas'      => $row[6] ?? '1 Proposal',
+                    'operator_penerima'  => $row[7] ?? null,
+                    'opd_tujuan'         => $opdInput,
+                    
+                    // Kolom relasi & metadata baru
+                    'pokir_plan_id'      => $planId,
+                    'status_sistem'      => $statusSistem,
+                    'tanggal_penerimaan' => $request->tanggal_penerimaan,
+                    'tahun_anggaran'     => $request->tahun_anggaran,
+                    'tipe_apbd'          => $request->tipe_apbd,
+                    'keterangan_upload'  => $request->keterangan_upload,
                 ]);
 
                 $countInput++;
             }
 
             DB::commit();
-            return redirect()->route('pokir.index')->with('success', "Sukses! $countInput berkas usulan berhasil diimport.");
+            return redirect()->route('pokir.index')->with('success', "Sukses! $countInput berkas usulan berhasil diimport dan diselaraskan dengan Master Pagu.");
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->route('pokir.index')->with('error', 'Gagal: ' . $e->getMessage());

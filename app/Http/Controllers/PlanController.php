@@ -14,9 +14,11 @@ class PlanController extends Controller
     public function index(Request $request)
     {
         $selectedTahun = $request->query('tahun', 2026);
+        $selectedTipe = $request->query('tipe', 'Induk');
 
         // Ambil semua data, urutkan per Aleg lalu per OPD, kemudian GROUP BY Aleg
         $groupedPlans = PokirPlan::where('tahun_anggaran', $selectedTahun)
+            ->where('tipe_apbd', $selectedTipe)
             ->orderBy('anggota_dprd')
             ->orderBy('opd_tujuan')
             ->get()
@@ -26,14 +28,15 @@ class PlanController extends Controller
         $currentYear = date('Y');
         $yearsRange = range($currentYear - 2, $currentYear + 4);
 
-        return view('plan.index', compact('groupedPlans', 'selectedTahun', 'yearsRange'));
+        return view('plan.index', compact('groupedPlans', 'selectedTahun', 'selectedTipe', 'yearsRange'));
     }
 
     public function import(Request $request)
     {
         $request->validate([
             'file_excel' => 'required|mimes:xlsx,xls',
-            'tahun_anggaran' => 'required|numeric'
+            'tahun_anggaran' => 'required|numeric',
+            'tipe_apbd' => 'required|string|in:Induk,Perubahan'
         ]);
 
         try {
@@ -86,7 +89,8 @@ class PlanController extends Controller
                     'opd_tujuan'    => $lastOpd ?? 'Dinas Terkait',
                     'anggota_dprd'  => $lastAleg ?? 'Umum',
 
-                    'tahun_anggaran' => $request->tahun_anggaran
+                    'tahun_anggaran' => $request->tahun_anggaran,
+                    'tipe_apbd'      => $request->tipe_apbd
                 ]);
 
                 $countInput++;
@@ -157,15 +161,17 @@ class PlanController extends Controller
     {
         $request->validate([
             'anggota_dprd' => 'required|string',
-            'tahun_anggaran' => 'required|numeric'
+            'tahun_anggaran' => 'required|numeric',
+            'tipe_apbd' => 'required|string|in:Induk,Perubahan'
         ]);
 
-        // Hapus semua data berdasarkan Nama Aleg dan Tahun
+        // Hapus semua data berdasarkan Nama Aleg, Tahun, dan Tipe APBD
         PokirPlan::where('anggota_dprd', $request->anggota_dprd)
             ->where('tahun_anggaran', $request->tahun_anggaran)
+            ->where('tipe_apbd', $request->tipe_apbd)
             ->delete();
 
-        return redirect()->back()->with('success', 'Seluruh pagu milik ' . $request->anggota_dprd . ' tahun ' . $request->tahun_anggaran . ' berhasil dihapus.');
+        return redirect()->back()->with('success', 'Seluruh pagu milik ' . $request->anggota_dprd . ' tahun ' . $request->tahun_anggaran . ' (' . $request->tipe_apbd . ') berhasil dihapus.');
     }
 
     public function store(Request $request)
@@ -178,6 +184,7 @@ class PlanController extends Controller
             'satuan'        => 'required|string',
             'harga_satuan'  => 'required', // String Rp...
             'tahun_anggaran' => 'required|numeric',
+            'tipe_apbd'     => 'required|string|in:Induk,Perubahan',
         ]);
 
         PokirPlan::create([
@@ -189,6 +196,7 @@ class PlanController extends Controller
             'harga_satuan'   => $this->cleanNumber($request->harga_satuan),
             'pagu_total'     => $request->volume_target * $this->cleanNumber($request->harga_satuan),
             'tahun_anggaran' => $request->tahun_anggaran,
+            'tipe_apbd'      => $request->tipe_apbd,
         ]);
 
         return redirect()->back()->with('success', 'Data rencana kerja berhasil ditambahkan manual.');

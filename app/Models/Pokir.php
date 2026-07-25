@@ -9,18 +9,7 @@ class Pokir extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'kategori_usulan',
-        'spesifikasi',
-        'opd_tujuan',
-        'alamat',
-        'nama_pemohon',
-        'identitas_pemohon',
-        'anggota_dprd',
-        'status_berkas',
-        'operator_penerima',
-    ];
-
+    protected $guarded = ['id'];
 
     public function getJudulLengkapAttribute()
     {

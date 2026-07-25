@@ -8,6 +8,35 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
 
+            <!-- FILTER PANEL -->
+            <div class="p-6 bg-white rounded-xl shadow-sm border border-gray-200">
+                <form method="GET" action="{{ route('dashboard') }}" class="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800">Executive Dashboard E-POKIR</h3>
+                        <p class="text-xs text-gray-500">Statistik terintegrasi untuk Tahun Anggaran <span class="font-bold text-indigo-600">{{ $selectedTahun }}</span> ({{ $selectedTipe }}).</p>
+                    </div>
+                    <div class="flex items-center gap-3 w-full md:w-auto">
+                        <div class="w-1/2 md:w-36">
+                            <label class="block text-xs font-semibold text-gray-500 mb-1">Tahun Anggaran</label>
+                            <select name="tahun" onchange="this.form.submit()"
+                                class="block w-full text-sm border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                                @foreach ($yearsRange as $yr)
+                                    <option value="{{ $yr }}" {{ $yr == $selectedTahun ? 'selected' : '' }}>{{ $yr }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="w-1/2 md:w-44">
+                            <label class="block text-xs font-semibold text-gray-500 mb-1">Tipe APBD</label>
+                            <select name="tipe" onchange="this.form.submit()"
+                                class="block w-full text-sm border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="Induk" {{ $selectedTipe == 'Induk' ? 'selected' : '' }}>APBD Induk</option>
+                                <option value="Perubahan" {{ $selectedTipe == 'Perubahan' ? 'selected' : '' }}>APBD Perubahan</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
             @include('dashboard.pagu-search')
 
             @include('dashboard.stats')
@@ -33,7 +62,7 @@
                     if (this.keyword.length < 2) { this.results = []; return; }
                     this.loading = true;
                     try {
-                        let response = await fetch(`{{ route('api.cek_pagu') }}?keyword=${this.keyword}`);
+                        let response = await fetch(`{{ route('api.cek_pagu') }}?keyword=${this.keyword}&tahun={{ $selectedTahun }}&tipe={{ $selectedTipe }}`);
                         let json = await response.json();
                         this.results = json.data;
                         this.totalGlobal = json.total_global;

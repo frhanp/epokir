@@ -20,15 +20,10 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 
 Route::middleware('auth')->group(function () {
     // === 1. MODUL POKIR ===
-    // Input Massal (Prioritas Utama)
-    Route::get('/pokir/input-massal', [PokirController::class, 'createBulk'])->name('pokir.bulk');
-    Route::post('/pokir/input-massal', [PokirController::class, 'storeBulk'])->name('pokir.storeBulk');
     Route::post('/pokir/import', [PokirController::class, 'importExcel'])->name('pokir.import');
 
     // List Data & Fitur Pendukung
     Route::get('/pokir', [PokirController::class, 'index'])->name('pokir.index');
-    Route::get('/pokir/create', [PokirController::class, 'create'])->name('pokir.create'); // Input Satuan (Opsional)
-    Route::post('/pokir', [PokirController::class, 'store'])->name('pokir.store');
     Route::get('/pokir/export', [PokirController::class, 'exportExcel'])->name('pokir.export');
     Route::get('/pokir/print', [PokirController::class, 'print'])->name('pokir.print');
 
@@ -48,6 +43,8 @@ Route::middleware('auth')->group(function () {
 
 
     Route::get('/api/cek-pagu', [DashboardController::class, 'cekPagu'])->name('api.cek_pagu');
+
+
 
 
 

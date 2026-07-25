@@ -58,6 +58,14 @@
                                 @endforeach
                             </select>
                         </div>
+                        <div class="w-full md:w-1/4">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tipe APBD</label>
+                            <select name="tipe_apbd" required
+                                class="block w-full text-sm border-gray-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500">
+                                <option value="Induk" {{ $selectedTipe == 'Induk' ? 'selected' : '' }}>APBD Induk</option>
+                                <option value="Perubahan" {{ $selectedTipe == 'Perubahan' ? 'selected' : '' }}>APBD Perubahan</option>
+                            </select>
+                        </div>
                         <button type="submit"
                             class="px-6 py-2.5 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 font-bold shadow-md transition w-full md:w-auto flex justify-center items-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -81,14 +89,24 @@
                 <div class="flex items-center justify-between flex-wrap gap-4">
                     <h3 class="text-lg font-bold text-gray-800 border-l-4 border-yellow-500 pl-3">Daftar Pagu Tersedia
                         (Per Fraksi/Aleg)</h3>
-                    <div class="flex items-center gap-2">
-                        <label for="filter-tahun" class="text-sm font-semibold text-gray-700">Tahun Anggaran:</label>
-                        <select id="filter-tahun" onchange="window.location.href = '{{ route('plans.index') }}?tahun=' + this.value"
-                            class="text-sm font-bold bg-yellow-100 text-yellow-800 border-yellow-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500 px-3 py-1">
-                            @foreach ($yearsRange as $yr)
-                                <option value="{{ $yr }}" {{ $yr == $selectedTahun ? 'selected' : '' }}>{{ $yr }}</option>
-                            @endforeach
-                        </select>
+                    <div class="flex items-center gap-4 flex-wrap">
+                        <div class="flex items-center gap-2">
+                            <label for="filter-tahun" class="text-sm font-semibold text-gray-700">Tahun:</label>
+                            <select id="filter-tahun" onchange="window.location.href = '{{ route('plans.index') }}?tahun=' + this.value + '&tipe={{ $selectedTipe }}'"
+                                class="text-sm font-bold bg-yellow-100 text-yellow-800 border-yellow-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500 px-3 py-1">
+                                @foreach ($yearsRange as $yr)
+                                    <option value="{{ $yr }}" {{ $yr == $selectedTahun ? 'selected' : '' }}>{{ $yr }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label for="filter-tipe" class="text-sm font-semibold text-gray-700">Tipe APBD:</label>
+                            <select id="filter-tipe" onchange="window.location.href = '{{ route('plans.index') }}?tahun={{ $selectedTahun }}&tipe=' + this.value"
+                                class="text-sm font-bold bg-yellow-100 text-yellow-800 border-yellow-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500 px-3 py-1">
+                                <option value="Induk" {{ $selectedTipe == 'Induk' ? 'selected' : '' }}>APBD Induk</option>
+                                <option value="Perubahan" {{ $selectedTipe == 'Perubahan' ? 'selected' : '' }}>APBD Perubahan</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
@@ -133,8 +151,9 @@
                                     @csrf @method('DELETE')
                                     <input type="hidden" name="anggota_dprd" value="{{ $alegName }}">
                                     <input type="hidden" name="tahun_anggaran" value="{{ $selectedTahun }}">
+                                    <input type="hidden" name="tipe_apbd" value="{{ $selectedTipe }}">
                                     <button type="button"
-                                        onclick="confirmDelete(this, 'Hapus SEMUA data pagu milik {{ $alegName }} untuk tahun {{ $selectedTahun }}?')"
+                                        onclick="confirmDelete(this, 'Hapus SEMUA data pagu milik {{ $alegName }} untuk tahun {{ $selectedTahun }} ({{ $selectedTipe }})?')"
                                         class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition"
                                         title="Hapus Semua">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -167,11 +186,11 @@
                                             class="text-xs text-gray-700 uppercase bg-yellow-50 border-b border-yellow-100">
                                             <tr>
                                                 <th class="px-4 py-3 w-10 text-center">No</th>
-                                                <th class="px-4 py-3 w-1/6">OPD</th>
                                                 <th class="px-4 py-3 w-1/3">Program Kegiatan</th>
                                                 <th class="px-4 py-3 text-center">Volume</th>
                                                 <th class="px-4 py-3 text-right">Harga Satuan</th>
                                                 <th class="px-4 py-3 text-right">Pagu Total</th>
+                                                <th class="px-4 py-3 w-1/6">OPD</th>
                                                 <th class="px-4 py-3 text-center w-28">Aksi</th>
                                             </tr>
                                         </thead>
@@ -184,26 +203,16 @@
                                                         method="POST" class="hidden">
                                                         @csrf @method('PUT')
                                                     </form>
-
+ 
                                                     <td class="px-4 py-3 text-center">{{ $loop->iteration }}</td>
-
-                                                    <td class="px-4 py-3">
-                                                        <span x-show="!isEditing"
-                                                            class="font-medium text-gray-900 block truncate"
-                                                            title="{{ $plan->opd_tujuan }}">{{ $plan->opd_tujuan }}</span>
-                                                        <input x-show="isEditing" type="text" name="opd_tujuan"
-                                                            form="row-form-{{ $plan->id }}"
-                                                            value="{{ $plan->opd_tujuan }}"
-                                                            class="w-full text-xs border-yellow-300 rounded focus:ring-yellow-500 focus:border-yellow-500">
-                                                    </td>
-
+ 
                                                     <td class="px-4 py-3">
                                                         <span x-show="!isEditing"
                                                             class="leading-relaxed">{{ $plan->nama_kegiatan }}</span>
                                                         <textarea x-show="isEditing" name="nama_kegiatan" form="row-form-{{ $plan->id }}" rows="2"
                                                             class="w-full text-xs border-yellow-300 rounded focus:ring-yellow-500 focus:border-yellow-500">{{ $plan->nama_kegiatan }}</textarea>
                                                     </td>
-
+ 
                                                     <td class="px-4 py-3 text-center">
                                                         <span x-show="!isEditing"
                                                             class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-bold">{{ $plan->volume_target }}
@@ -219,7 +228,7 @@
                                                                 class="w-14 text-xs border-yellow-300 rounded focus:ring-yellow-500 focus:border-yellow-500">
                                                         </div>
                                                     </td>
-
+ 
                                                     <td class="px-4 py-3 text-right text-gray-500">
                                                         <span
                                                             x-show="!isEditing">{{ number_format($plan->harga_satuan, 0, ',', '.') }}</span>
@@ -230,9 +239,19 @@
                                                             oninput="formatRupiah(this)"
                                                             class="w-28 text-xs border-yellow-300 rounded text-right focus:ring-yellow-500 focus:border-yellow-500">
                                                     </td>
-
+ 
                                                     <td class="px-4 py-3 text-right font-bold text-yellow-700">
                                                         {{ number_format($plan->pagu_total, 0, ',', '.') }}</td>
+
+                                                    <td class="px-4 py-3">
+                                                        <span x-show="!isEditing"
+                                                            class="font-medium text-gray-900 block truncate"
+                                                            title="{{ $plan->opd_tujuan }}">{{ $plan->opd_tujuan }}</span>
+                                                        <input x-show="isEditing" type="text" name="opd_tujuan"
+                                                            form="row-form-{{ $plan->id }}"
+                                                            value="{{ $plan->opd_tujuan }}"
+                                                            class="w-full text-xs border-yellow-300 rounded focus:ring-yellow-500 focus:border-yellow-500">
+                                                    </td>
 
                                                     <td class="px-4 py-3 text-center">
                                                         <div x-show="!isEditing"
@@ -332,6 +351,14 @@
                                     @foreach ($yearsRange as $yr)
                                         <option value="{{ $yr }}" {{ $yr == $selectedTahun ? 'selected' : '' }}>{{ $yr }}</option>
                                     @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">Tipe APBD</label>
+                                <select name="tipe_apbd" required
+                                    class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-yellow-500 focus:border-yellow-500">
+                                    <option value="Induk" {{ $selectedTipe == 'Induk' ? 'selected' : '' }}>APBD Induk</option>
+                                    <option value="Perubahan" {{ $selectedTipe == 'Perubahan' ? 'selected' : '' }}>APBD Perubahan</option>
                                 </select>
                             </div>
                             <div>
