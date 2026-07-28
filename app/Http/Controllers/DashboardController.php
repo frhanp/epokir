@@ -145,10 +145,9 @@ class DashboardController extends Controller
             return response()->json(['data' => [], 'total_global' => 0]);
         }
 
-        // Cari di Master Plan (Pagu), kelompokkan per Aleg
         $results = \App\Models\PokirPlan::where('tahun_anggaran', $tahun)
             ->where('tipe_apbd', $tipe)
-            ->where('nama_kegiatan', 'LIKE', "%{$keyword}%")
+            ->whereRaw('LOWER(nama_kegiatan) LIKE ?', ["%" . strtolower($keyword) . "%"])
             ->select(
                 'anggota_dprd',
                 DB::raw('SUM(volume_target) as total_volume'),
