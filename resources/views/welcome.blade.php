@@ -199,7 +199,7 @@
                 
                 <!-- Hero Info -->
                 <div class="text-center lg:text-left">
-                    <h1 class="text-5xl lg:text-6xl font-normal font-title text-slate-900 leading-tight mb-6">
+                    <h1 class="text-5xl lg:text-6.5xl font-black font-display text-slate-900 leading-tight mb-6 tracking-tight">
                         Karya Nyata untuk <br>
                         <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-amber-600">Aspirasi Rakyat Gorontalo.</span>
                     </h1>
@@ -261,7 +261,7 @@
     <section id="features" class="py-24 bg-slate-50 border-t border-b border-slate-100 relative">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h2 class="text-4xl font-normal font-title text-slate-900 mb-4">Suara Golkar, Suara Rakyat</h2>
+                <h2 class="text-4xl lg:text-5xl font-black font-display text-slate-900 mb-4 tracking-tight">Suara Golkar, Suara Rakyat</h2>
                 <p class="text-slate-500 max-w-2xl mx-auto">Kami menghadirkan sistem yang memudahkan pengelolaan aspirasi masyarakat agar terealisasi secara efektif.</p>
             </div>
 
@@ -271,7 +271,7 @@
                     <div class="w-14 h-14 bg-yellow-500/10 rounded-2xl flex items-center justify-center text-yellow-600 mb-6 border border-yellow-500/20">
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
                     </div>
-                    <h3 class="text-xl font-bold text-slate-900 mb-3">Transparansi Data</h3>
+                    <h3 class="text-xl font-black font-display text-slate-900 mb-3">Transparansi Data</h3>
                     <p class="text-slate-500 leading-relaxed text-sm">
                         Seluruh usulan dan pagu anggaran tercatat secara digital, meminimalisir kesalahan dan memudahkan pelacakan program.
                     </p>
@@ -282,7 +282,7 @@
                     <div class="w-14 h-14 bg-yellow-500/10 rounded-2xl flex items-center justify-center text-yellow-600 mb-6 border border-yellow-500/20">
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                     </div>
-                    <h3 class="text-xl font-bold text-slate-900 mb-3">Efisiensi Proses</h3>
+                    <h3 class="text-xl font-black font-display text-slate-900 mb-3">Efisiensi Proses</h3>
                     <p class="text-slate-500 leading-relaxed text-sm">
                         Dari input usulan Excel hingga rekapitulasi per Aleg dilakukan secara otomatis, mempercepat proses kerja administrasi.
                     </p>
@@ -293,7 +293,7 @@
                     <div class="w-14 h-14 bg-yellow-500/10 rounded-2xl flex items-center justify-center text-yellow-600 mb-6 border border-yellow-500/20">
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
-                    <h3 class="text-xl font-bold text-slate-900 mb-3">Akurasi & Realisasi</h3>
+                    <h3 class="text-xl font-black font-display text-slate-900 mb-3">Akurasi & Realisasi</h3>
                     <p class="text-slate-500 leading-relaxed text-sm">
                         Memastikan setiap pagu anggaran terserap sesuai dengan program kegiatan yang paling dibutuhkan masyarakat Gorontalo.
                     </p>
