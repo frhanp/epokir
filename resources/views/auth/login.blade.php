@@ -1,7 +1,7 @@
 <x-guest-layout>
     <div class="text-center mb-6">
-        <h2 class="text-2xl font-extrabold text-gray-800">Login E-POKIR</h2>
-        <p class="text-sm text-gray-500 mt-1">Masuk untuk mengelola aspirasi</p>
+        <h2 class="text-2xl font-extrabold text-gray-800 dark:text-white">Login E-POKIR</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Masuk untuk mengelola aspirasi</p>
     </div>
 
     <x-auth-session-status class="mb-4" :status="session('status')" />
@@ -29,14 +29,14 @@
 
         <div class="block mt-4">
             <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded border-gray-300 text-yellow-600 shadow-sm focus:ring-yellow-500" name="remember">
-                <span class="ms-2 text-sm text-gray-600">{{ __('Ingat Saya') }}</span>
+                <input id="remember_me" type="checkbox" class="rounded border-gray-300 dark:border-white/10 dark:bg-slate-900 text-yellow-600 shadow-sm focus:ring-yellow-500" name="remember">
+                <span class="ms-2 text-sm text-slate-600 dark:text-slate-400">{{ __('Ingat Saya') }}</span>
             </label>
         </div>
 
         <div class="flex items-center justify-between mt-6">
             @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 hover:text-yellow-600 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500" href="{{ route('password.request') }}">
+                <a class="underline text-sm text-slate-600 dark:text-slate-400 hover:text-yellow-600 dark:hover:text-yellow-500 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500" href="{{ route('password.request') }}">
                     {{ __('Lupa Password?') }}
                 </a>
             @endif
