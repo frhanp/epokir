@@ -51,7 +51,44 @@
         </div>
 
         <div x-show="keyword.length > 0 && !loading && !hasResults" class="mt-6 text-slate-400 italic text-sm" style="display: none;">
-            Tidak ditemukan data pagu untuk kata kunci "<span x-text="keyword"></span>".
+            Tidak ditemukan data pagu untuk kata kunci "<span x-text="keyword"></span>" pada Tahun {{ $selectedTahun }} ({{ $selectedTipe }}).
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('paguSearch', () => ({
+        keyword: '',
+        results: [],
+        totalGlobal: 0,
+        loading: false,
+        hasResults: false,
+        tahun: '{{ $selectedTahun ?? 2026 }}',
+        tipe: '{{ $selectedTipe ?? "Induk" }}',
+
+        async search() {
+            if (this.keyword.length < 2) {
+                this.hasResults = false;
+                this.results = [];
+                return;
+            }
+            
+            this.loading = true;
+            try {
+                // Fetch dengan menyertakan param tahun dan tipe yang aktif di Dashboard
+                const response = await fetch(`/api/cek-pagu?keyword=${this.keyword}&tahun=${this.tahun}&tipe=${this.tipe}`);
+                const data = await response.json();
+                
+                this.results = data.data;
+                this.totalGlobal = data.total_global;
+                this.hasResults = this.results.length > 0;
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            } finally {
+                this.loading = false;
+            }
+        }
+    }));
+});
+</script>
