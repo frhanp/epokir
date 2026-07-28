@@ -9,26 +9,26 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
 
             <!-- FILTER PANEL -->
-            <div class="p-6 bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-6 bg-white rounded-[24px] border border-yellow-100/50 shadow-[0_15px_30px_-5px_rgba(234,179,8,0.02)]">
                 <form method="GET" action="{{ route('dashboard') }}" class="flex flex-col md:flex-row justify-between items-center gap-4">
                     <div>
-                        <h3 class="text-lg font-bold text-gray-800">Executive Dashboard E-POKIR</h3>
-                        <p class="text-xs text-gray-500">Statistik terintegrasi untuk Tahun Anggaran <span class="font-bold text-indigo-600">{{ $selectedTahun }}</span> ({{ $selectedTipe }}).</p>
+                        <h3 class="text-lg font-black font-display text-slate-800">Executive Dashboard E-POKIR</h3>
+                        <p class="text-xs text-slate-500">Statistik terintegrasi untuk Tahun Anggaran <span class="font-bold text-yellow-600">{{ $selectedTahun }}</span> ({{ $selectedTipe }}).</p>
                     </div>
                     <div class="flex items-center gap-3 w-full md:w-auto">
                         <div class="w-1/2 md:w-36">
-                            <label class="block text-xs font-semibold text-gray-500 mb-1">Tahun Anggaran</label>
+                            <label class="block text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-1.5">Tahun Anggaran</label>
                             <select name="tahun" onchange="this.form.submit()"
-                                class="block w-full text-sm border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                                class="block w-full text-sm border-yellow-100/60 rounded-xl bg-yellow-50/10 focus:ring-yellow-400 focus:border-yellow-400 text-slate-700">
                                 @foreach ($yearsRange as $yr)
                                     <option value="{{ $yr }}" {{ $yr == $selectedTahun ? 'selected' : '' }}>{{ $yr }}</option>
                                 @endforeach
                             </select>
                         </div>
                         <div class="w-1/2 md:w-44">
-                            <label class="block text-xs font-semibold text-gray-500 mb-1">Tipe APBD</label>
+                            <label class="block text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-1.5">Tipe APBD</label>
                             <select name="tipe" onchange="this.form.submit()"
-                                class="block w-full text-sm border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                                class="block w-full text-sm border-yellow-100/60 rounded-xl bg-yellow-50/10 focus:ring-yellow-400 focus:border-yellow-400 text-slate-700">
                                 <option value="Induk" {{ $selectedTipe == 'Induk' ? 'selected' : '' }}>APBD Induk</option>
                                 <option value="Perubahan" {{ $selectedTipe == 'Perubahan' ? 'selected' : '' }}>APBD Perubahan</option>
                             </select>
@@ -81,7 +81,7 @@
                     labels: @json($labelKategori),
                     datasets: [{
                         data: @json($dataKategori),
-                        backgroundColor: ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'],
+                        backgroundColor: ['#F59E0B', '#FBBF24', '#FCD34D', '#FDE68A', '#FEF08A', '#EAB308'],
                         borderWidth: 0,
                         hoverOffset: 4
                     }]

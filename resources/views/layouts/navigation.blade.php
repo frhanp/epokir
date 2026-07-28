@@ -1,14 +1,24 @@
 <aside class="h-full flex flex-col md:h-screen md:sticky md:top-0">
-    <div class="p-6 border-b border-gray-200">
+    <div class="p-6 border-b border-yellow-100/60 flex items-center justify-between">
         <a href="{{ route('dashboard') }}" class="flex items-center gap-3 group">
             <img src="{{ asset('images/logo-golkar.png') }}" 
                  alt="Logo Golkar" 
                  class="h-11 w-auto rounded-xl shadow-sm transition transform group-hover:scale-105">
                  
-            <span class="text-lg font-extrabold text-yellow-500 tracking-wide uppercase leading-tight">
-                Fraksi Partai Golkar
+            <span class="text-sm font-extrabold text-yellow-500 tracking-wide uppercase leading-tight font-display">
+                Fraksi Golkar
             </span>
         </a>
+        <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-yellow-50/50 hover:bg-yellow-100/80 text-yellow-600 border border-yellow-250/20 dark:bg-slate-800 dark:hover:bg-slate-700 dark:border-slate-700 dark:text-yellow-400 transition shrink-0 ml-2">
+            <!-- Sun icon -->
+            <svg class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"></path>
+            </svg>
+            <!-- Moon icon -->
+            <svg class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+            </svg>
+        </button>
     </div>
 
     <nav class="flex-1 px-4 py-6 space-y-2">
@@ -53,11 +63,11 @@
     
     </nav>
 
-    <div x-data="{ open: false }" class="px-4 py-4 border-t border-gray-200">
+    <div x-data="{ open: false }" class="px-4 py-4 border-t border-yellow-100/60">
         <button @click="open = !open"
-            class="w-full flex items-center justify-between px-4 py-2 text-sm font-medium text-left bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+            class="w-full flex items-center justify-between px-4 py-2.5 text-sm font-medium text-left bg-yellow-50/50 text-yellow-900 border border-yellow-100/40 rounded-xl hover:bg-yellow-100/50 transition">
             <span>{{ Auth::user()->name }}</span>
-            <svg :class="{ 'rotate-180': open }" class="w-4 h-4 transform transition-transform" fill="none"
+            <svg :class="{ 'rotate-180': open }" class="w-4 h-4 transform transition-transform text-yellow-600" fill="none"
                 stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
