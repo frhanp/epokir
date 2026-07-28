@@ -201,7 +201,7 @@
                 <div class="text-center lg:text-left">
                     <h1 class="text-5xl lg:text-6xl font-normal font-title text-slate-900 leading-tight mb-6">
                         Karya Nyata untuk <br>
-                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-amber-600">Aspirasi Rakyat.</span>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-amber-600">Aspirasi Rakyat Gorontalo.</span>
                     </h1>
                     
                     <p class="text-base sm:text-lg text-slate-500 mb-8 leading-relaxed max-w-2xl mx-auto lg:mx-0">
