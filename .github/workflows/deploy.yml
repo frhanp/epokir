@@ -1,0 +1,83 @@
+name: Deploy to Armbian via Tailscale
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    # Setup PHP environment
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, xml, ctype, iconv, mysql, zip
+        coverage: none
+
+    # Install Composer Dependencies & Run Tests
+    - name: Install Composer Dependencies
+      run: composer install --no-progress --prefer-dist
+
+    - name: Copy .env
+      run: cp .env.example .env
+
+    - name: Generate Application Key
+      run: php artisan key:generate
+
+    - name: Run Tests
+      run: php artisan test
+
+    # Install NPM Dependencies & Build Assets (Offload CPU dari ARM)
+    - name: Install NPM & Build Assets
+      run: |
+        npm install
+        npm run build
+
+    # Connect to Private Tailscale Network
+    - name: Connect to Tailscale
+      uses: tailscale/github-action@v2
+      with:
+        authkey: ${{ secrets.TAILSCALE_AUTH_KEY }}
+
+    # Step 1: Jalankan script deploy.sh yang sudah ada di server Armbian untuk pull code, composer, & migrasi
+    - name: Run deploy.sh on Armbian
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.ARMBIAN_TAILSCALE_IP }}
+        username: ${{ secrets.ARMBIAN_USER }}
+        key: ${{ secrets.ARMBIAN_SSH_KEY }}
+        port: 22
+        script: |
+          chmod +x /var/www/epokir/deploy.sh
+          /var/www/epokir/deploy.sh
+
+    # Step 2: Upload folder public/build hasil build Actions langsung ke Armbian (Git tetap bersih)
+    - name: Upload Build Assets to Armbian
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.ARMBIAN_TAILSCALE_IP }}
+        username: ${{ secrets.ARMBIAN_USER }}
+        key: ${{ secrets.ARMBIAN_SSH_KEY }}
+        port: 22
+        source: "public/build/"
+        target: "/var/www/epokir/"
+
+    # Step 3: Samakan kepemilikan file build ke www-data dan bersihkan/optimasi cache Laravel
+    - name: Fix Permissions & Re-Optimize
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.ARMBIAN_TAILSCALE_IP }}
+        username: ${{ secrets.ARMBIAN_USER }}
+        key: ${{ secrets.ARMBIAN_SSH_KEY }}
+        port: 22
+        script: |
+          sudo chown -R www-data:www-data /var/www/epokir/public/build
+          cd /var/www/epokir
+          sudo -u www-data php artisan optimize:clear
+          sudo -u www-data php artisan optimize
