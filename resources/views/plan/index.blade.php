@@ -8,6 +8,7 @@
     <div class="py-12" x-data="{ showModal: false, defaultAleg: '' }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
+            @if(!auth()->user()->isReadOnly())
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div
                     class="bg-yellow-50 px-6 py-4 border-b border-yellow-100 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -84,6 +85,7 @@
                     </p>
                 </div>
             </div>
+            @endif
 
             <div class="space-y-4">
                 <div class="flex items-center justify-between flex-wrap gap-4">
@@ -147,6 +149,7 @@
                                     <span class="text-xs text-gray-400 uppercase tracking-wider">Total Pagu</span>
                                 </div>
 
+                                @if(!auth()->user()->isReadOnly())
                                 <form action="{{ route('plans.destroyAleg') }}" method="POST">
                                     @csrf @method('DELETE')
                                     <input type="hidden" name="anggota_dprd" value="{{ $alegName }}">
@@ -163,11 +166,13 @@
                                         </svg>
                                     </button>
                                 </form>
+                                @endif
                             </div>
                         </summary>
 
                         <div class="p-5 border-t border-yellow-100 bg-gray-50/50">
 
+                            @if(!auth()->user()->isReadOnly())
                             <div class="mb-4 flex justify-end">
                                 <button @click="defaultAleg = '{{ $alegName }}'; showModal = true" type="button"
                                     class="text-xs flex items-center gap-1 bg-yellow-100 text-yellow-800 px-4 py-2 rounded-lg hover:bg-yellow-200 font-bold border border-yellow-300 transition shadow-sm">
@@ -178,6 +183,7 @@
                                     Tambah Kegiatan {{ $alegName }}
                                 </button>
                             </div>
+                            @endif
 
                             <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                                 <div class="overflow-x-auto">
@@ -191,7 +197,9 @@
                                                 <th class="px-4 py-3 text-right">Harga Satuan</th>
                                                 <th class="px-4 py-3 text-right">Pagu Total</th>
                                                 <th class="px-4 py-3 w-1/6">OPD</th>
+                                                @if(!auth()->user()->isReadOnly())
                                                 <th class="px-4 py-3 text-center w-28">Aksi</th>
+                                                @endif
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-100">
@@ -253,6 +261,7 @@
                                                             class="w-full text-xs border-yellow-300 rounded focus:ring-yellow-500 focus:border-yellow-500">
                                                     </td>
 
+                                                    @if(!auth()->user()->isReadOnly())
                                                     <td class="px-4 py-3 text-center">
                                                         <div x-show="!isEditing"
                                                             class="flex items-center justify-center gap-2">
@@ -303,6 +312,7 @@
                                                                 </svg></button>
                                                         </div>
                                                     </td>
+                                                    @endif
                                                 </tr>
                                             @endforeach
                                         </tbody>
@@ -327,6 +337,7 @@
             </div>
         </div>
 
+        @if(!auth()->user()->isReadOnly())
         <div x-show="showModal" style="display: none;"
             class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm px-4"
             x-transition>
@@ -409,6 +420,7 @@
                 </div>
             </div>
         </div>
+        @endif
     </div>
 
     <script>

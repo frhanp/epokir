@@ -68,6 +68,7 @@
                 </form>
             </div>
 
+            @if(!auth()->user()->isReadOnly())
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div
                     class="bg-indigo-50 px-6 py-4 border-b border-indigo-100 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -151,6 +152,7 @@
                     </p>
                 </div>
             </div>
+            @endif
 
             <div class="bg-white shadow sm:rounded-lg overflow-hidden">
                 <div class="p-4 border-b border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">

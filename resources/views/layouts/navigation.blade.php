@@ -58,6 +58,15 @@
             </svg>
             {{ __('Matriks Realisasi') }}
         </x-nav-link>
+
+        @if(auth()->user()->role === 'admin')
+        <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0-2.625.372 9.337 9.337 0 0 0-4.121-1.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.109A3.378 3.378 0 0 1 11.625 22.5a3.379 3.379 0 0 1-3.375-3.375v-.109m-1.5-1.5a3.375 3.375 0 0 1 0-6.75M3 15.75c0-1.113.285-2.16.786-3.07M3 15.75v.109a3.378 3.378 0 0 0 3.375 3.375 3.375 3.375 0 0 0 3.375-3.375v-.109m0-1.5a3.375 3.375 0 0 0 0-6.75M12 9a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z" />
+            </svg>
+            {{ __('Manajemen User') }}
+        </x-nav-link>
+        @endif
     
 
     
