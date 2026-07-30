@@ -159,13 +159,18 @@ class LaporanBulananController extends Controller
     {
         $laporan = LaporanBulanan::with('items')->findOrFail($id);
 
-        $templatePath = storage_path('app/template_laporan.docx');
-        if (!file_exists($templatePath)) {
-            return redirect()->back()->with('error', 'File template_laporan.docx tidak ditemukan. Jalankan generator template terlebih dahulu.');
+        $originalDocx = storage_path('app/Laporan Bulanan Pak Kun Bulan Agustus.docx');
+        if (!file_exists($originalDocx)) {
+            return redirect()->back()->with('error', 'Berkas asli Laporan Bulanan Pak Kun Bulan Agustus.docx tidak ditemukan di storage/app.');
         }
 
+        $tempTemplate = tempnam(sys_get_temp_dir(), 'docx');
+
         try {
-            $template = new TemplateProcessor($templatePath);
+            // Compile template dynamically on-the-fly from the original document
+            $this->compileTemplate($originalDocx, $tempTemplate);
+
+            $template = new TemplateProcessor($tempTemplate);
 
             $monthNames = [
                 1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 
@@ -253,7 +258,7 @@ class LaporanBulananController extends Controller
                             $section->addImage($img, [
                                 'width' => 595,
                                 'height' => 842,
-                                'alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER
+                                'alignment' => \PhpOffice\SimpleType\Jc::CENTER
                             ]);
                         }
 
@@ -270,9 +275,13 @@ class LaporanBulananController extends Controller
                 }
             }
 
+            // Clean up the temp template file
+            @unlink($tempTemplate);
+
             return response()->download($tempFile, $outputName)->deleteFileAfterSend(true);
 
         } catch (\Exception $e) {
+            @unlink($tempTemplate);
             return redirect()->back()->with('error', 'Gagal memproses template Word: ' . $e->getMessage());
         }
     }
@@ -445,5 +454,219 @@ class LaporanBulananController extends Controller
             '2027-08-17', // Hari Proklamasi Kemerdekaan RI
             '2027-12-25', // Hari Raya Natal
         ];
+    }
+
+    /**
+     * Dynamic Template Compiler (On-the-fly parser for original DOCX template)
+     */
+    private function compileTemplate($originalDocx, $templateDocx)
+    {
+        // Copy original template to temp template location
+        if (!copy($originalDocx, $templateDocx)) {
+            throw new \Exception("Gagal menyalin berkas Word asli ke berkas temporary draf.");
+        }
+
+        $zip = new \ZipArchive();
+        if ($zip->open($templateDocx) !== TRUE) {
+            throw new \Exception("Gagal membuka berkas Word draf sebagai ZIP archive.");
+        }
+
+        $xmlContent = $zip->getFromName('word/document.xml');
+        if ($xmlContent === false) {
+            $zip->close();
+            throw new \Exception("Gagal membaca word/document.xml dari berkas ZIP.");
+        }
+
+        $dom = new \DOMDocument();
+        libxml_use_internal_errors(true);
+        $dom->loadXML($xmlContent);
+        libxml_clear_errors();
+
+        $xpath = new \DOMXPath($dom);
+        $xpath->registerNamespace('w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main');
+
+        // 1. Process Paragraphs for placeholders
+        $paragraphs = $xpath->query('//w:p');
+        foreach ($paragraphs as $p) {
+            $pText = '';
+            $texts = $xpath->query('.//w:t', $p);
+            foreach ($texts as $t) {
+                $pText .= $t->nodeValue;
+            }
+            
+            // Check for date: Gorontalo, 1 Agustus 2026
+            if (preg_match('/Gorontalo,\s*\d+\s*Agustus\s*2026/i', $pText)) {
+                $this->replaceParagraphText($xpath, $p, '${tanggal_laporan}');
+            }
+            // Check for Hal: Laporan Kinerja Periode Juli
+            elseif (preg_match('/Hal\s*:\s*Laporan\s*Kinerja\s*Periode\s*Juli/i', $pText)) {
+                $this->replaceParagraphText($xpath, $p, 'Hal : Laporan Kinerja Periode ${periode_laporan}');
+            }
+            // Check for "periode Juli 2026 sebagaimana terlampir"
+            elseif (preg_match('/periode\s*Juli\s*2026\s*sebagaimana\s*terlampir/i', $pText)) {
+                $newTxt = str_replace('periode Juli 2026 sebagaimana terlampir', 'periode ${periode_laporan} ${tahun_laporan} sebagaimana terlampir', $pText);
+                $this->replaceParagraphText($xpath, $p, $newTxt);
+            }
+            // Check for title "LAPORAN KINERJA PELAKSANAAN TUGAS DAN TANGGUNG JAWAB ... PERIODE BULAN JULI 2026"
+            elseif (preg_match('/PERIODE\s*BULAN\s*JULI\s*2026/i', $pText)) {
+                $newTxt = str_replace('PERIODE BULAN JULI 2026', 'PERIODE BULAN ${periode_laporan_upper} ${tahun_laporan}', $pText);
+                $this->replaceParagraphText($xpath, $p, $newTxt);
+            }
+            // Check for "sebagai Tenaga Ahli ...,untuk periode Juli 2026."
+            elseif (preg_match('/untuk\s*periode\s*Juli\s*2026/i', $pText)) {
+                $newTxt = str_replace('untuk periode Juli 2026', 'untuk periode ${periode_laporan} ${tahun_laporan}', $pText);
+                $this->replaceParagraphText($xpath, $p, $newTxt);
+            }
+            // Check for "selama periode Juli 2026"
+            elseif (preg_match('/selama\s*periode\s*Juli\s*2026/i', $pText)) {
+                $newTxt = str_replace('selama periode Juli 2026', 'selama periode ${periode_laporan} ${tahun_laporan}', $pText);
+                $this->replaceParagraphText($xpath, $p, $newTxt);
+            }
+            // Check for "selama bulan Juli 2026"
+            elseif (preg_match('/selama\s*bulan\s*Juli\s*2026/i', $pText)) {
+                $newTxt = str_replace('selama bulan Juli 2026', 'selama bulan ${periode_laporan} ${tahun_laporan}', $pText);
+                $this->replaceParagraphText($xpath, $p, $newTxt);
+            }
+            // Check for "pada bulan Juli 2026 ini"
+            elseif (preg_match('/pada\s*bulan\s*Juli\s*2026\s*ini/i', $pText)) {
+                $newTxt = str_replace('pada bulan Juli 2026 ini', 'pada bulan ${periode_laporan} ${tahun_laporan} ini', $pText);
+                $this->replaceParagraphText($xpath, $p, $newTxt);
+            }
+            // Check for footer "periode Juli 2026, atas perhatian"
+            elseif (preg_match('/periode\s*Juli\s*2026,\s*atas\s*perhatian/i', $pText)) {
+                $newTxt = str_replace('periode Juli 2026, atas perhatian', 'periode ${periode_laporan} ${tahun_laporan}, atas perhatian', $pText);
+                $this->replaceParagraphText($xpath, $p, $newTxt);
+            }
+        }
+
+        // 2. Process Tables
+        $tables = $xpath->query('//w:tbl');
+        foreach ($tables as $table) {
+            $rows = $xpath->query('.//w:tr', $table);
+            if ($rows->length < 2) continue;
+            
+            $row2 = $rows->item(1); 
+            $cells = $xpath->query('.//w:tc', $row2);
+            
+            if ($cells->length >= 3) {
+                $this->replaceCellText($xpath, $cells->item(0), '${no}');
+                $this->replaceCellText($xpath, $cells->item(1), '${tanggal}');
+                $this->replaceCellText($xpath, $cells->item(2), '${kegiatan}');
+            }
+            
+            for ($i = 2; $i < $rows->length; $i++) {
+                $table->removeChild($rows->item($i));
+            }
+        }
+
+        // 3. Process Saran/Masukan
+        $pSaran = null;
+        $pPenutup = null;
+        $pTemplateItem = null;
+
+        $paragraphs = $xpath->query('//w:p');
+        foreach ($paragraphs as $p) {
+            $pText = '';
+            $texts = $xpath->query('.//w:t', $p);
+            foreach ($texts as $t) {
+                $pText .= $t->nodeValue;
+            }
+            
+            if (trim($pText) === 'IV. SARAN/MASUKAN') {
+                $pSaran = $p;
+            }
+            elseif (trim($pText) === 'PENUTUP') {
+                $pPenutup = $p;
+            }
+            elseif (strpos($pText, 'Penyelesaian tindak lanjut') !== false) {
+                $pTemplateItem = $p;
+            }
+        }
+
+        if ($pSaran && $pPenutup && $pTemplateItem) {
+            $pTemplateItemClone = $pTemplateItem->cloneNode(true);
+            $this->replaceParagraphText($xpath, $pTemplateItemClone, '${saran_text}');
+            
+            $dom = $pSaran->ownerDocument;
+            $pBlockStart = $dom->createElementNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'w:p');
+            $rStart = $dom->createElementNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'w:r');
+            $tStart = $dom->createElementNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'w:t');
+            $tStart->nodeValue = '${saran_block}';
+            $rStart->appendChild($tStart);
+            $pBlockStart->appendChild($rStart);
+            
+            $pBlockEnd = $dom->createElementNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'w:p');
+            $rEnd = $dom->createElementNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'w:r');
+            $tEnd = $dom->createElementNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'w:t');
+            $tEnd->nodeValue = '${/saran_block}';
+            $rEnd->appendChild($tEnd);
+            $pBlockEnd->appendChild($rEnd);
+            
+            $nodesToDelete = [];
+            $curr = $pSaran->nextSibling;
+            while ($curr && $curr !== $pPenutup) {
+                $nodesToDelete[] = $curr;
+                $curr = $curr->nextSibling;
+            }
+            
+            $parent = $pSaran->parentNode;
+            foreach ($nodesToDelete as $node) {
+                $parent->removeChild($node);
+            }
+            
+            $pSpacing1 = $dom->createElementNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'w:p');
+            $parent->insertBefore($pSpacing1, $pPenutup);
+            $parent->insertBefore($pBlockStart, $pPenutup);
+            $parent->insertBefore($pTemplateItemClone, $pPenutup);
+            $parent->insertBefore($pBlockEnd, $pPenutup);
+        }
+
+        $newXml = $dom->saveXML();
+        $zip->deleteName('word/document.xml');
+        $zip->addFromString('word/document.xml', $newXml);
+        $zip->close();
+    }
+
+    /**
+     * Helper to replace all text nodes in a paragraph with a single text node
+     */
+    private function replaceParagraphText($xpath, $p, $newText)
+    {
+        $runs = $xpath->query('.//w:r', $p);
+        if ($runs->length == 0) return;
+        
+        $firstRun = $runs->item(0);
+        $texts = $xpath->query('.//w:t', $firstRun);
+        foreach ($texts as $t) {
+            $firstRun->removeChild($t);
+        }
+        
+        $dom = $p->ownerDocument;
+        $newT = $dom->createElementNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'w:t');
+        if (strpos($newText, ' ') !== false) {
+            $newT->setAttribute('xml:space', 'preserve');
+        }
+        $newT->nodeValue = $newText;
+        $firstRun->appendChild($newT);
+        
+        for ($i = 1; $i < $runs->length; $i++) {
+            $p->removeChild($runs->item($i));
+        }
+    }
+
+    /**
+     * Helper to replace all text in a cell (w:tc) with a single text node
+     */
+    private function replaceCellText($xpath, $cell, $newText)
+    {
+        $paragraphs = $xpath->query('.//w:p', $cell);
+        if ($paragraphs->length == 0) return;
+        
+        $firstP = $paragraphs->item(0);
+        $this->replaceParagraphText($xpath, $firstP, $newText);
+        
+        for ($i = 1; $i < $paragraphs->length; $i++) {
+            $cell->removeChild($paragraphs->item($i));
+        }
     }
 }
