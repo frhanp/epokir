@@ -161,7 +161,45 @@ class LaporanBulananController extends Controller
 
         $originalDocx = storage_path('app/Laporan Bulanan Pak Kun Bulan Agustus.docx');
         if (!file_exists($originalDocx)) {
-            return redirect()->back()->with('error', 'Berkas asli Laporan Bulanan Pak Kun Bulan Agustus.docx tidak ditemukan di storage/app.');
+            // Coba cari case-insensitive di storage/app
+            $originalDocx = $this->findFileCaseInsensitive(storage_path('app'), 'Laporan Bulanan Pak Kun Bulan Agustus.docx');
+            
+            // Coba cari case-insensitive di storage/app/public
+            if (!$originalDocx) {
+                $originalDocx = $this->findFileCaseInsensitive(storage_path('app/public'), 'Laporan Bulanan Pak Kun Bulan Agustus.docx');
+            }
+            
+            // Coba cari menggunakan pencarian wildcard Laporan*Bulanan*Pak*Kun
+            if (!$originalDocx) {
+                $wildcardPatterns = [
+                    storage_path('app/*[lL]aporan*[bB]ulanan*[pP]ak*[kK]un*.docx'),
+                    storage_path('app/public/*[lL]aporan*[bB]ulanan*[pP]ak*[kK]un*.docx'),
+                    storage_path('app/*[kK]un*.docx'),
+                    storage_path('app/public/*[kK]un*.docx')
+                ];
+                foreach ($wildcardPatterns as $pattern) {
+                    $files = glob($pattern);
+                    if (!empty($files)) {
+                        $originalDocx = $files[0];
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!$originalDocx || !file_exists($originalDocx)) {
+            // List file yang ada di storage/app untuk mempermudah debugging bagi user
+            $existingFiles = [];
+            if (is_dir(storage_path('app'))) {
+                foreach (scandir(storage_path('app')) as $f) {
+                    if ($f !== '.' && $f !== '..' && is_file(storage_path('app/' . $f))) {
+                        $existingFiles[] = $f;
+                    }
+                }
+            }
+            $fileListStr = !empty($existingFiles) ? implode(', ', $existingFiles) : 'kosong';
+            
+            return redirect()->back()->with('error', 'Berkas asli Laporan Bulanan Pak Kun tidak ditemukan di storage/app. File yang ada di folder storage/app saat ini: [' . $fileListStr . ']. Pastikan nama berkas dan letak folder sudah benar.');
         }
 
         $tempTemplate = tempnam(sys_get_temp_dir(), 'docx');
@@ -668,5 +706,20 @@ class LaporanBulananController extends Controller
         for ($i = 1; $i < $paragraphs->length; $i++) {
             $cell->removeChild($paragraphs->item($i));
         }
+    }
+
+    /**
+     * Helper to search file case-insensitively in a folder
+     */
+    private function findFileCaseInsensitive($dir, $filename)
+    {
+        if (!is_dir($dir)) return null;
+        $files = scandir($dir);
+        foreach ($files as $file) {
+            if (strcasecmp($file, $filename) === 0) {
+                return $dir . '/' . $file;
+            }
+        }
+        return null;
     }
 }
