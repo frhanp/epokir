@@ -9,6 +9,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PlanController;
 use App\Http\Controllers\ResesController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\LaporanBulananController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -48,6 +49,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/reses/lampiran', [ResesController::class, 'index'])->name('reses.index');
     Route::post('/reses/cetak', [ResesController::class, 'printPdf'])->name('reses.print');
 
+    // === MODUL LAPORAN BULANAN TENAGA AHLI ===
+    Route::get('/laporan-bulanan', [LaporanBulananController::class, 'index'])->name('laporan.index');
+    Route::post('/laporan-bulanan', [LaporanBulananController::class, 'store'])->name('laporan.store');
+    Route::get('/laporan-bulanan/{id}/edit', [LaporanBulananController::class, 'edit'])->name('laporan.edit');
+    Route::post('/laporan-bulanan/simpan', [LaporanBulananController::class, 'storeOrUpdate'])->name('laporan.update');
+    Route::get('/laporan-bulanan/{id}/export', [LaporanBulananController::class, 'exportDocx'])->name('laporan.export');
+    Route::delete('/laporan-bulanan/{id}', [LaporanBulananController::class, 'destroy'])->name('laporan.destroy');
 
     Route::get('/api/cek-pagu', [DashboardController::class, 'cekPagu'])->name('api.cek_pagu');
 
