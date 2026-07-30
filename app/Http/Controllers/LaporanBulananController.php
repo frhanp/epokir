@@ -538,7 +538,7 @@ class LaporanBulananController extends Controller
             }
             // Check for Hal: Laporan Kinerja Periode Juli
             elseif (preg_match('/Hal\s*:\s*Laporan\s*Kinerja\s*Periode\s*Juli/i', $pText)) {
-                $this->replaceParagraphText($xpath, $p, 'Hal : Laporan Kinerja Periode ${periode_laporan}');
+                $this->replaceParagraphHal($xpath, $p);
             }
             // Check for "periode Juli 2026 sebagaimana terlampir"
             elseif (preg_match('/periode\s*Juli\s*2026\s*sebagaimana\s*terlampir/i', $pText)) {
@@ -721,5 +721,65 @@ class LaporanBulananController extends Controller
             }
         }
         return null;
+    }
+
+    /**
+     * Helper to structure and format Hal paragraph with bold target text
+     */
+    private function replaceParagraphHal($xpath, $p)
+    {
+        $pPr = null;
+        $pPrQuery = $xpath->query('./w:pPr', $p);
+        if ($pPrQuery->length > 0) {
+            $pPr = $pPrQuery->item(0);
+        }
+        
+        while ($p->hasChildNodes()) {
+            $p->removeChild($p->firstChild);
+        }
+        
+        if ($pPr) {
+            $p->appendChild($pPr);
+        }
+        
+        $dom = $p->ownerDocument;
+        
+        // Run 1: Normal "Hal : " (Explicitly turn off bold)
+        $r1 = $dom->createElementNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'w:r');
+        $rPr1 = $dom->createElementNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'w:rPr');
+        
+        $b1 = $dom->createElementNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'w:b');
+        $b1->setAttribute('w:val', '0');
+        $rPr1->appendChild($b1);
+        
+        $sz1 = $dom->createElementNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'w:sz');
+        $sz1->setAttribute('w:val', '24');
+        $rPr1->appendChild($sz1);
+        
+        $r1->appendChild($rPr1);
+        
+        $t1 = $dom->createElementNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'w:t');
+        $t1->setAttribute('xml:space', 'preserve');
+        $t1->nodeValue = 'Hal : ';
+        $r1->appendChild($t1);
+        $p->appendChild($r1);
+        
+        // Run 2: Bold "Laporan Kinerja Periode ${periode_laporan}"
+        $r2 = $dom->createElementNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'w:r');
+        $rPr2 = $dom->createElementNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'w:rPr');
+        
+        $b2 = $dom->createElementNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'w:b');
+        $rPr2->appendChild($b2);
+        
+        $sz2 = $dom->createElementNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'w:sz');
+        $sz2->setAttribute('w:val', '24');
+        $rPr2->appendChild($sz2);
+        
+        $r2->appendChild($rPr2);
+        
+        $t2 = $dom->createElementNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'w:t');
+        $t2->nodeValue = 'Laporan Kinerja Periode ${periode_laporan}';
+        $r2->appendChild($t2);
+        $p->appendChild($r2);
     }
 }
