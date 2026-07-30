@@ -269,7 +269,9 @@
     <div class="absolute top-0 inset-x-0 h-[900px] pastel-bg -z-20"></div>
     <div class="absolute top-[100px] left-[10%] w-[500px] h-[500px] bg-yellow-100/40 rounded-full blur-[100px] -z-10 animate-float-slow"></div>
     <div class="absolute top-[250px] right-[10%] w-[600px] h-[600px] bg-amber-50/50 rounded-full blur-[120px] -z-10 animate-float-medium"></div>
-
+    
+    <div class="absolute bottom-[50px] left-[30%] w-[400px] h-[400px] bg-yellow-200/30 rounded-full blur-[90px] -z-10 animate-float-slow"></div>
+    <div class="absolute top-[50px] right-[30%] w-[350px] h-[350px] bg-yellow-300/20 rounded-full blur-[100px] -z-10 animate-float-medium"></div>
     <div class="absolute inset-0 soft-grid h-[900px] opacity-75 -z-10"></div>
     
     <!-- Interactive Canvas Particle Network Background -->
@@ -506,7 +508,7 @@
                 const pCtx = pCanvas.getContext('2d');
                 let pList = [];
                 let sparkList = [];
-                const pCount = 185; // Increased count for a more active network
+                const pCount = 500; // Increased count for a more active network
                 let pMouse = { x: -9999, y: -9999 };
                 
                 // Track mouse position on window
@@ -537,16 +539,16 @@
                     constructor(x, y) {
                         this.x = x;
                         this.y = y;
-                        this.vx = (Math.random() - 0.5) * 1.6;
-                        this.vy = (Math.random() - 0.5) * 1.6;
+                        this.vx = (Math.random() - 0.5) * 2.0; // Sebaran lebih lebar (sebelumnya 1.6)
+        this.vy = (Math.random() - 0.5) * 2.0;
                         this.alpha = 1.0;
-                        this.radius = Math.random() * 2 + 1;
+                        this.radius = Math.random() * 2 + 1.5;
                     }
                     update() {
                         this.x += this.vx;
                         this.y += this.vy;
-                        this.alpha -= 0.024; // Fades out in about 40 frames (~0.7s)
-                        if (this.radius > 0.1) this.radius -= 0.035;
+                        this.alpha -= 0.001; // Fade out SANGAT lambat, meninggalkan jejak (sebelumnya 0.024)
+        if (this.radius > 0.1) this.radius -= 0.015; // Menyusut lebih lambat
                     }
                     draw() {
                         pCtx.beginPath();
