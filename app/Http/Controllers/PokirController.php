@@ -31,6 +31,15 @@ class PokirController extends Controller
         return $str;
     }
 
+    private function cleanName($name)
+    {
+        $norm = $this->normalizeString($name);
+        $titles = ['dr', 'drs', 'h', 'hj', 'se', 'mm', 'm', 'si', 'sip', 'sh', 'mh', 'ec', 'dev', 'sos', 'i', 'ra', 'a', 't', 'z'];
+        $words = array_filter(explode(' ', $norm));
+        $filtered = array_filter($words, fn($w) => !in_array($w, $titles) && mb_strlen($w, 'UTF-8') >= 2);
+        return implode(' ', $filtered);
+    }
+
     private function isFlexibleMatch($str1, $str2)
     {
         $n1 = $this->normalizeString($str1);
@@ -43,11 +52,22 @@ class PokirController extends Controller
         if ($n1 === $n2) return true;
         if (str_contains($n1, $n2) || str_contains($n2, $n1)) return true;
 
-        $w1 = array_filter(explode(' ', $n1));
-        $w2 = array_filter(explode(' ', $n2));
-        $intersect = array_intersect($w1, $w2);
+        $c1 = $this->cleanName($str1);
+        $c2 = $this->cleanName($str2);
+
+        if (!empty($c1) && !empty($c2)) {
+            if ($c1 === $c2 || str_contains($c1, $c2) || str_contains($c2, $c1)) {
+                return true;
+            }
+            $w1 = array_filter(explode(' ', $c1));
+            $w2 = array_filter(explode(' ', $c2));
+            $intersect = array_intersect($w1, $w2);
+            if (count($intersect) >= 2 || (count($intersect) == 1 && mb_strlen(reset($intersect), 'UTF-8') >= 4)) {
+                return true;
+            }
+        }
         
-        return count($intersect) > 0;
+        return false;
     }
 
     private function findBestMatchingPlan($plans, $kategori, $spesifikasi = '')
@@ -470,11 +490,24 @@ class PokirController extends Controller
     // HALAMAN MATRIKS REALISASI (SUMMARY & GAP ANALYSIS)
     public function matrix(Request $request)
     {
-        // 1. Ambil data unik untuk pilihan filter
-        $alegs = PokirPlan::distinct()->orderBy('anggota_dprd')->pluck('anggota_dprd')->toArray();
-        if (empty($alegs)) {
-            // fallback jika master plan kosong, ambil dari pokirs
-            $alegs = Pokir::distinct()->orderBy('anggota_dprd')->pluck('anggota_dprd')->toArray();
+        // 1. Ambil data unik untuk pilihan filter (Konsolidasi nama Aleg agar tidak ganda karena variasi spasi/gelar)
+        $rawAlegs = PokirPlan::distinct()->orderBy('anggota_dprd')->pluck('anggota_dprd')->toArray();
+        if (empty($rawAlegs)) {
+            $rawAlegs = Pokir::distinct()->orderBy('anggota_dprd')->pluck('anggota_dprd')->toArray();
+        }
+
+        $alegs = [];
+        foreach ($rawAlegs as $item) {
+            $exists = false;
+            foreach ($alegs as $existing) {
+                if ($this->isFlexibleMatch($item, $existing)) {
+                    $exists = true;
+                    break;
+                }
+            }
+            if (!$exists && !empty(trim($item))) {
+                $alegs[] = trim($item);
+            }
         }
 
         $opds = PokirPlan::distinct()->orderBy('opd_tujuan')->pluck('opd_tujuan')->toArray();
@@ -487,32 +520,46 @@ class PokirController extends Controller
         $selectedTahun = $request->query('tahun_anggaran', 2026);
         $selectedTipe = $request->query('tipe_apbd', 'Induk');
 
-        // 2. Query Pagu Target (Master Pagu)
-        $plansQuery = PokirPlan::where('tahun_anggaran', $selectedTahun)
+        // 2. Query Pagu Target (Master Pagu) secara fleksibel
+        $allPlans = PokirPlan::where('tahun_anggaran', $selectedTahun)
             ->where('tipe_apbd', $selectedTipe)
-            ->where('anggota_dprd', $selectedAleg);
+            ->with(['pokirs'])
+            ->get();
+
+        $plans = $allPlans->filter(function($p) use ($selectedAleg) {
+            return $this->isFlexibleMatch($p->anggota_dprd, $selectedAleg);
+        });
 
         if ($request->filled('opd_tujuan')) {
-            $plansQuery->where('opd_tujuan', $request->opd_tujuan);
+            $opdReq = $request->opd_tujuan;
+            $plans = $plans->filter(function($p) use ($opdReq) {
+                return $this->isFlexibleMatch($p->opd_tujuan, $opdReq);
+            });
         }
 
         if ($request->filled('nama_kegiatan')) {
-            $plansQuery->where('nama_kegiatan', 'like', '%' . $request->nama_kegiatan . '%');
+            $kegReq = $request->nama_kegiatan;
+            $plans = $plans->filter(function($p) use ($kegReq) {
+                return $this->isFlexibleMatch($p->nama_kegiatan, $kegReq);
+            });
         }
 
-        $plans = $plansQuery->with(['pokirs'])->get();
-
-        // 3. Query Usulan Tanpa Pagu (Orphan / Usulan Baru)
-        $orphanQuery = Pokir::where('tahun_anggaran', $selectedTahun)
+        // 3. Query Usulan Tanpa Pagu (Orphan / Usulan Baru) secara fleksibel
+        $allOrphans = Pokir::where('tahun_anggaran', $selectedTahun)
             ->where('tipe_apbd', $selectedTipe)
-            ->where('anggota_dprd', $selectedAleg)
-            ->whereNull('pokir_plan_id');
+            ->whereNull('pokir_plan_id')
+            ->get();
+
+        $orphans = $allOrphans->filter(function($po) use ($selectedAleg) {
+            return $this->isFlexibleMatch($po->anggota_dprd, $selectedAleg);
+        });
 
         if ($request->filled('opd_tujuan')) {
-            $orphanQuery->where('opd_tujuan', $request->opd_tujuan);
+            $opdReq = $request->opd_tujuan;
+            $orphans = $orphans->filter(function($po) use ($opdReq) {
+                return $this->isFlexibleMatch($po->opd_tujuan, $opdReq);
+            });
         }
-
-        $orphans = $orphanQuery->get();
 
         // Pilihan tahun
         $currentYear = date('Y');
@@ -534,41 +581,69 @@ class PokirController extends Controller
     public function exportMatrixExcel(Request $request)
     {
         // 1. Ambil data unik untuk filter
-        $alegs = PokirPlan::distinct()->orderBy('anggota_dprd')->pluck('anggota_dprd')->toArray();
-        if (empty($alegs)) {
-            $alegs = Pokir::distinct()->orderBy('anggota_dprd')->pluck('anggota_dprd')->toArray();
+        $rawAlegs = PokirPlan::distinct()->orderBy('anggota_dprd')->pluck('anggota_dprd')->toArray();
+        if (empty($rawAlegs)) {
+            $rawAlegs = Pokir::distinct()->orderBy('anggota_dprd')->pluck('anggota_dprd')->toArray();
+        }
+
+        $alegs = [];
+        foreach ($rawAlegs as $item) {
+            $exists = false;
+            foreach ($alegs as $existing) {
+                if ($this->isFlexibleMatch($item, $existing)) {
+                    $exists = true;
+                    break;
+                }
+            }
+            if (!$exists && !empty(trim($item))) {
+                $alegs[] = trim($item);
+            }
         }
 
         $selectedAleg = $request->query('anggota_dprd', $alegs[0] ?? '');
         $selectedTahun = $request->query('tahun_anggaran', 2026);
         $selectedTipe = $request->query('tipe_apbd', 'Induk');
 
-        // Query Pagu Target (Master Pagu)
-        $plansQuery = PokirPlan::where('tahun_anggaran', $selectedTahun)
+        // Query Pagu Target (Master Pagu) secara fleksibel
+        $allPlans = PokirPlan::where('tahun_anggaran', $selectedTahun)
             ->where('tipe_apbd', $selectedTipe)
-            ->where('anggota_dprd', $selectedAleg);
+            ->with(['pokirs'])
+            ->get();
+
+        $plans = $allPlans->filter(function($p) use ($selectedAleg) {
+            return $this->isFlexibleMatch($p->anggota_dprd, $selectedAleg);
+        });
 
         if ($request->filled('opd_tujuan')) {
-            $plansQuery->where('opd_tujuan', $request->opd_tujuan);
+            $opdReq = $request->opd_tujuan;
+            $plans = $plans->filter(function($p) use ($opdReq) {
+                return $this->isFlexibleMatch($p->opd_tujuan, $opdReq);
+            });
         }
 
         if ($request->filled('nama_kegiatan')) {
-            $plansQuery->where('nama_kegiatan', 'like', '%' . $request->nama_kegiatan . '%');
+            $kegReq = $request->nama_kegiatan;
+            $plans = $plans->filter(function($p) use ($kegReq) {
+                return $this->isFlexibleMatch($p->nama_kegiatan, $kegReq);
+            });
         }
 
-        $plans = $plansQuery->with(['pokirs'])->get();
-
-        // Query Usulan Tanpa Pagu (Orphan / Usulan Baru)
-        $orphanQuery = Pokir::where('tahun_anggaran', $selectedTahun)
+        // Query Usulan Tanpa Pagu (Orphan / Usulan Baru) secara fleksibel
+        $allOrphans = Pokir::where('tahun_anggaran', $selectedTahun)
             ->where('tipe_apbd', $selectedTipe)
-            ->where('anggota_dprd', $selectedAleg)
-            ->whereNull('pokir_plan_id');
+            ->whereNull('pokir_plan_id')
+            ->get();
+
+        $orphans = $allOrphans->filter(function($po) use ($selectedAleg) {
+            return $this->isFlexibleMatch($po->anggota_dprd, $selectedAleg);
+        });
 
         if ($request->filled('opd_tujuan')) {
-            $orphanQuery->where('opd_tujuan', $request->opd_tujuan);
+            $opdReq = $request->opd_tujuan;
+            $orphans = $orphans->filter(function($po) use ($opdReq) {
+                return $this->isFlexibleMatch($po->opd_tujuan, $opdReq);
+            });
         }
-
-        $orphans = $orphanQuery->get();
 
         // 2. Load file Excel Template
         $templatePath = storage_path('app/contoh_matriks_aleg.xlsx');
