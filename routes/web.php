@@ -24,6 +24,9 @@ Route::middleware('auth')->group(function () {
     // === 1. MODUL POKIR ===
     Route::middleware('block_readonly')->group(function () {
         Route::post('/pokir/import', [PokirController::class, 'importExcel'])->name('pokir.import');
+        Route::post('/pokir/realign', [PokirController::class, 'realign'])->name('pokir.realign');
+        Route::delete('/pokir/bulk/delete', [PokirController::class, 'bulkDestroy'])->name('pokir.bulkDestroy');
+        Route::delete('/pokir/{pokir}', [PokirController::class, 'destroy'])->name('pokir.destroy');
     });
 
     // List Data & Fitur Pendukung
