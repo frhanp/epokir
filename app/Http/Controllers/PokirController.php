@@ -12,11 +12,21 @@ use Illuminate\Support\Facades\DB;
 
 class PokirController extends Controller
 {
+    private function cleanString($str)
+    {
+        if (empty($str)) return '';
+        // Replace non-breaking spaces (both UTF-8 and Latin-1) with normal spaces
+        $str = str_replace(["\xc2\xa0", "\xa0"], ' ', $str);
+        // Replace multiple spaces/newlines/tabs with a single space
+        $str = preg_replace('/\s+/', ' ', $str);
+        return trim($str);
+    }
+
     private function normalizeString($str)
     {
-        $str = strtolower($str);
-        $str = preg_replace('/[^\w\s]/', ' ', $str);
-        $str = trim(preg_replace('/\s+/', ' ', $str));
+        $str = mb_strtolower($str, 'UTF-8');
+        $str = preg_replace('/[^\w\s]/u', ' ', $str);
+        $str = $this->cleanString($str);
         return $str;
     }
 
@@ -29,11 +39,11 @@ class PokirController extends Controller
         $bestPlan = null;
         $highestScore = -1;
 
-        $kategoriLower = trim(strtolower($kategori));
+        $kategoriLower = trim(mb_strtolower($kategori, 'UTF-8'));
 
         // 1. First, look for an exact or substring match (case-insensitive)
         foreach ($plans as $plan) {
-            $planLower = trim(strtolower($plan->nama_kegiatan));
+            $planLower = trim(mb_strtolower($plan->nama_kegiatan, 'UTF-8'));
             if ($kategoriLower === $planLower) {
                 return $plan; // Perfect exact match
             }
@@ -41,16 +51,16 @@ class PokirController extends Controller
 
         // Helper to tokenize and clean a string into unique words
         $getWords = function($str) {
-            $str = strtolower($str);
-            $str = preg_replace('/[^\w\s]/', ' ', $str);
+            $str = mb_strtolower($str, 'UTF-8');
+            $str = preg_replace('/[^\w\s]/u', ' ', $str);
             $words = explode(' ', $str);
             
             $commonWords = ['permohonan', 'bantuan', 'pengadaan', 'pembangunan', 'rehabilitasi', 'pemeliharaan', 'belanja', 'kegiatan', 'pekerjaan', 'usulan', 'dinas', 'paket', 'tahun', 'anggaran', 'kabupaten', 'kota', 'kecamatan', 'desa', 'kelurahan'];
             
             $cleaned = [];
             foreach ($words as $w) {
-                $w = trim($w);
-                if (strlen($w) >= 2 && !in_array($w, $commonWords)) {
+                $w = $this->cleanString($w);
+                if (mb_strlen($w, 'UTF-8') >= 2 && !in_array($w, $commonWords)) {
                     $cleaned[] = $w;
                 }
             }
@@ -63,7 +73,7 @@ class PokirController extends Controller
         }
 
         foreach ($plans as $plan) {
-            $planLower = trim(strtolower($plan->nama_kegiatan));
+            $planLower = trim(mb_strtolower($plan->nama_kegiatan, 'UTF-8'));
             
             // Substring check
             if (str_contains($kategoriLower, $planLower) || str_contains($planLower, $kategoriLower)) {
@@ -230,6 +240,11 @@ class PokirController extends Controller
 
             $countInput = 0;
 
+            // Fetch ALL plans for this year and APBD type once to avoid N+1 query and case-sensitivity issues
+            $allPlans = PokirPlan::where('tahun_anggaran', $request->tahun_anggaran)
+                ->where('tipe_apbd', $request->tipe_apbd)
+                ->get();
+
             foreach ($rows as $index => $row) {
                 // Filter baris (kolom A harus numerik)
                 if (empty($row[0]) || !is_numeric($row[0])) {
@@ -245,19 +260,23 @@ class PokirController extends Controller
                 // Kolom H (index 7): KET PENERIMA -> operator_penerima
                 // Kolom I (index 8): DINAS TERKAIT -> opd_tujuan
 
-                $alegInput = trim(preg_replace('/\s+/', ' ', $row[5] ?? 'Umum'));
-                $opdInput = trim(preg_replace('/\s+/', ' ', $row[8] ?? 'Dinas Terkait'));
-                $kategoriInput = trim(preg_replace('/\s+/', ' ', $row[1] ?? 'Umum'));
+                $alegInput = $row[5] ?? 'Umum';
+                $opdInput = $row[8] ?? 'Dinas Terkait';
+                $kategoriInput = $row[1] ?? 'Umum';
 
-                // Cari rencana kerja (Master Pagu) yang sesuai dengan Aleg & OPD
-                $plans = PokirPlan::where('tahun_anggaran', $request->tahun_anggaran)
-                    ->where('tipe_apbd', $request->tipe_apbd)
-                    ->where('anggota_dprd', $alegInput)
-                    ->where('opd_tujuan', $opdInput)
-                    ->get();
+                $alegClean = mb_strtolower($this->cleanString($alegInput), 'UTF-8');
+                $opdClean = mb_strtolower($this->cleanString($opdInput), 'UTF-8');
+                $kategoriClean = $this->cleanString($kategoriInput);
+
+                // Filter plans of this Aleg & OPD in PHP (Case-insensitive & spacing-safe)
+                $matchedPlans = $allPlans->filter(function($p) use ($alegClean, $opdClean) {
+                    $pAleg = mb_strtolower($this->cleanString($p->anggota_dprd), 'UTF-8');
+                    $pOpd = mb_strtolower($this->cleanString($p->opd_tujuan), 'UTF-8');
+                    return $pAleg === $alegClean && $pOpd === $opdClean;
+                });
 
                 // Cari plan terbaik menggunakan fuzzy matching
-                $plan = $this->findBestMatchingPlan($plans, $kategoriInput);
+                $plan = $this->findBestMatchingPlan($matchedPlans, $kategoriClean);
 
                 $planId = null;
                 $statusSistem = 'Usulan Baru';
@@ -327,12 +346,18 @@ class PokirController extends Controller
             $planUsage = [];
 
             foreach ($pokirs as $pokir) {
+                $alegClean = mb_strtolower($this->cleanString($pokir->anggota_dprd), 'UTF-8');
+                $opdClean = mb_strtolower($this->cleanString($pokir->opd_tujuan), 'UTF-8');
+
                 // Cari plans yang cocok berdasarkan tahun, apbd, aleg, opd
-                $matchedPlans = $plans->filter(function($p) use ($pokir) {
+                $matchedPlans = $plans->filter(function($p) use ($pokir, $alegClean, $opdClean) {
+                    $pAleg = mb_strtolower($this->cleanString($p->anggota_dprd), 'UTF-8');
+                    $pOpd = mb_strtolower($this->cleanString($p->opd_tujuan), 'UTF-8');
+
                     return $p->tahun_anggaran == $pokir->tahun_anggaran &&
                            $p->tipe_apbd == $pokir->tipe_apbd &&
-                           $p->anggota_dprd == $pokir->anggota_dprd &&
-                           $p->opd_tujuan == $pokir->opd_tujuan;
+                           $pAleg === $alegClean &&
+                           $pOpd === $opdClean;
                 });
 
                 $plan = $this->findBestMatchingPlan($matchedPlans, $pokir->kategori_usulan);
