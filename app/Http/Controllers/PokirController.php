@@ -24,10 +24,30 @@ class PokirController extends Controller
 
     private function normalizeString($str)
     {
+        if (empty($str)) return '';
         $str = mb_strtolower($str, 'UTF-8');
         $str = preg_replace('/[^\w\s]/u', ' ', $str);
         $str = $this->cleanString($str);
         return $str;
+    }
+
+    private function isFlexibleMatch($str1, $str2)
+    {
+        $n1 = $this->normalizeString($str1);
+        $n2 = $this->normalizeString($str2);
+        
+        if (empty($n1) || empty($n2)) {
+            return true;
+        }
+        
+        if ($n1 === $n2) return true;
+        if (str_contains($n1, $n2) || str_contains($n2, $n1)) return true;
+
+        $w1 = array_filter(explode(' ', $n1));
+        $w2 = array_filter(explode(' ', $n2));
+        $intersect = array_intersect($w1, $w2);
+        
+        return count($intersect) > 0;
     }
 
     private function findBestMatchingPlan($plans, $kategori, $spesifikasi = '')
@@ -39,32 +59,44 @@ class PokirController extends Controller
         $bestPlan = null;
         $highestScore = -1;
 
-        $kategoriLower = trim(mb_strtolower($kategori, 'UTF-8'));
+        $kategoriNorm = $this->normalizeString($kategori);
+        if (empty($kategoriNorm)) {
+            return null;
+        }
 
-        // 1. First, look for an exact or substring match (case-insensitive)
+        // 1. First, look for an exact normalized match
         foreach ($plans as $plan) {
-            $planLower = trim(mb_strtolower($plan->nama_kegiatan, 'UTF-8'));
-            if ($kategoriLower === $planLower) {
+            $planNorm = $this->normalizeString($plan->nama_kegiatan);
+            if ($kategoriNorm === $planNorm) {
                 return $plan; // Perfect exact match
             }
         }
 
         // Helper to tokenize and clean a string into unique words
         $getWords = function($str) {
-            $str = mb_strtolower($str, 'UTF-8');
-            $str = preg_replace('/[^\w\s]/u', ' ', $str);
-            $words = explode(' ', $str);
-            
+            $norm = $this->normalizeString($str);
+            if (empty($norm)) return [];
+
+            $words = explode(' ', $norm);
             $commonWords = ['permohonan', 'bantuan', 'pengadaan', 'pembangunan', 'rehabilitasi', 'pemeliharaan', 'belanja', 'kegiatan', 'pekerjaan', 'usulan', 'dinas', 'paket', 'tahun', 'anggaran', 'kabupaten', 'kota', 'kecamatan', 'desa', 'kelurahan'];
             
             $cleaned = [];
             foreach ($words as $w) {
-                $w = $this->cleanString($w);
+                $w = trim($w);
                 if (mb_strlen($w, 'UTF-8') >= 2 && !in_array($w, $commonWords)) {
                     $cleaned[] = $w;
                 }
             }
-            return array_unique($cleaned);
+            // If all words were common words, fallback to keeping all words >= 2 chars
+            if (empty($cleaned)) {
+                foreach ($words as $w) {
+                    $w = trim($w);
+                    if (mb_strlen($w, 'UTF-8') >= 2) {
+                        $cleaned[] = $w;
+                    }
+                }
+            }
+            return array_unique(array_values($cleaned));
         };
 
         $kategoriWords = $getWords($kategori);
@@ -73,11 +105,11 @@ class PokirController extends Controller
         }
 
         foreach ($plans as $plan) {
-            $planLower = trim(mb_strtolower($plan->nama_kegiatan, 'UTF-8'));
+            $planNorm = $this->normalizeString($plan->nama_kegiatan);
             
             // Substring check
-            if (str_contains($kategoriLower, $planLower) || str_contains($planLower, $kategoriLower)) {
-                $score = 100 + (strlen($planLower) / 100);
+            if (!empty($planNorm) && (str_contains($kategoriNorm, $planNorm) || str_contains($planNorm, $kategoriNorm))) {
+                $score = 100 + (strlen($planNorm) / 100);
             } else {
                 $planWords = $getWords($plan->nama_kegiatan);
                 
@@ -264,19 +296,27 @@ class PokirController extends Controller
                 $opdInput = $row[8] ?? 'Dinas Terkait';
                 $kategoriInput = $row[1] ?? 'Umum';
 
-                $alegClean = mb_strtolower($this->cleanString($alegInput), 'UTF-8');
-                $opdClean = mb_strtolower($this->cleanString($opdInput), 'UTF-8');
-                $kategoriClean = $this->cleanString($kategoriInput);
-
-                // Filter plans of this Aleg & OPD in PHP (Case-insensitive & spacing-safe)
-                $matchedPlans = $allPlans->filter(function($p) use ($alegClean, $opdClean) {
-                    $pAleg = mb_strtolower($this->cleanString($p->anggota_dprd), 'UTF-8');
-                    $pOpd = mb_strtolower($this->cleanString($p->opd_tujuan), 'UTF-8');
-                    return $pAleg === $alegClean && $pOpd === $opdClean;
+                // 3-Tier plan matching strategy:
+                // Tier 1: Match both Aleg & OPD with flexible matching
+                $matchedPlans = $allPlans->filter(function($p) use ($alegInput, $opdInput) {
+                    return $this->isFlexibleMatch($p->anggota_dprd, $alegInput) &&
+                           $this->isFlexibleMatch($p->opd_tujuan, $opdInput);
                 });
 
+                // Tier 2: Match by Aleg only
+                if ($matchedPlans->isEmpty()) {
+                    $matchedPlans = $allPlans->filter(function($p) use ($alegInput) {
+                        return $this->isFlexibleMatch($p->anggota_dprd, $alegInput);
+                    });
+                }
+
+                // Tier 3: Fallback to all plans in that Year & APBD
+                if ($matchedPlans->isEmpty()) {
+                    $matchedPlans = $allPlans;
+                }
+
                 // Cari plan terbaik menggunakan fuzzy matching
-                $plan = $this->findBestMatchingPlan($matchedPlans, $kategoriClean);
+                $plan = $this->findBestMatchingPlan($matchedPlans, $kategoriInput);
 
                 $planId = null;
                 $statusSistem = 'Usulan Baru';
@@ -346,19 +386,30 @@ class PokirController extends Controller
             $planUsage = [];
 
             foreach ($pokirs as $pokir) {
-                $alegClean = mb_strtolower($this->cleanString($pokir->anggota_dprd), 'UTF-8');
-                $opdClean = mb_strtolower($this->cleanString($pokir->opd_tujuan), 'UTF-8');
-
-                // Cari plans yang cocok berdasarkan tahun, apbd, aleg, opd
-                $matchedPlans = $plans->filter(function($p) use ($pokir, $alegClean, $opdClean) {
-                    $pAleg = mb_strtolower($this->cleanString($p->anggota_dprd), 'UTF-8');
-                    $pOpd = mb_strtolower($this->cleanString($p->opd_tujuan), 'UTF-8');
-
+                // Tier 1: Match both Aleg & OPD with flexible matching in same year & APBD
+                $matchedPlans = $plans->filter(function($p) use ($pokir) {
                     return $p->tahun_anggaran == $pokir->tahun_anggaran &&
                            $p->tipe_apbd == $pokir->tipe_apbd &&
-                           $pAleg === $alegClean &&
-                           $pOpd === $opdClean;
+                           $this->isFlexibleMatch($p->anggota_dprd, $pokir->anggota_dprd) &&
+                           $this->isFlexibleMatch($p->opd_tujuan, $pokir->opd_tujuan);
                 });
+
+                // Tier 2: Match by Aleg only within same year & APBD
+                if ($matchedPlans->isEmpty()) {
+                    $matchedPlans = $plans->filter(function($p) use ($pokir) {
+                        return $p->tahun_anggaran == $pokir->tahun_anggaran &&
+                               $p->tipe_apbd == $pokir->tipe_apbd &&
+                               $this->isFlexibleMatch($p->anggota_dprd, $pokir->anggota_dprd);
+                    });
+                }
+
+                // Tier 3: Fallback to all plans in same year & APBD
+                if ($matchedPlans->isEmpty()) {
+                    $matchedPlans = $plans->filter(function($p) use ($pokir) {
+                        return $p->tahun_anggaran == $pokir->tahun_anggaran &&
+                               $p->tipe_apbd == $pokir->tipe_apbd;
+                    });
+                }
 
                 $plan = $this->findBestMatchingPlan($matchedPlans, $pokir->kategori_usulan);
 
